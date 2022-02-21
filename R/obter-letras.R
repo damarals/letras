@@ -85,6 +85,7 @@ obter_letras <- function() {
 #' @export
 #' @noRd
 dados_atualizados <- function(tabela) {
-  u <- glue::glue('https://github.com/damarals/letras/blob/master/data/{tabela}.rda?raw=true')
-  load(url(u))
+  u <- glue::glue('http://github.com/damarals/letras/blob/master/data/{tabela}.rda?raw=true')
+  download.file(u, destfile = 'temp.rda')
+  load('temp.rda')
 }

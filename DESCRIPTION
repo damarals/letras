@@ -19,7 +19,7 @@ BugReports: https://github.com/damarals/letras/issues
 Depends: 
     R (>= 2.10)
 LazyData: true
-LazyDataCompression: xz
+LazyDataCompression: gzip
 Imports: 
     magrittr,
     dplyr,
