@@ -29,6 +29,7 @@ jobs:
           remotes::install_cran("usethis")
           remotes::install_cran("rmarkdown")
           remotes::install_cran("tidyr")
+          remotes::install_cran("stringr")
           remotes::install_cran("zip")
         shell: Rscript {0}
       - name: Execute Script
