@@ -15,7 +15,7 @@ readr::write_csv(letras, "inst/csv/letras.csv")
 
 # Salvar letras em txt
 dir.create("inst/txt")
-purrr::walk(1:2, function(ix_letra) {
+purrr::walk(1:nrow(letras), function(ix_letra) {
   letra <- letras[ix_letra,]
   letra_txt <- glue::glue("{letra$musica}\n{letra$artista}\n\n{letra$letra}")
   nome_arq <- paste0(gsub('[[:punct:]]+','', letra$artista), " - ",
