@@ -40,6 +40,7 @@ jobs:
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git add data/.
+          git add inst/csv/.
           git add inst/txt/.
           git add inst/letras.zip
           git add README.md
