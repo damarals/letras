@@ -14,7 +14,8 @@ readr::write_csv(musicas, "inst/csv/musicas.csv")
 readr::write_csv(letras, "inst/csv/letras.csv")
 
 # Salvar letras em txt
-purrr::walk(1:nrow(letras), function(ix_letra) {
+dir.create("inst/txt")
+purrr::walk(1:2, function(ix_letra) {
   letra <- letras[ix_letra,]
   letra_txt <- glue::glue("{letra$musica}\n{letra$artista}\n\n{letra$letra}")
   nome_arq <- paste0(gsub('[[:punct:]]+','', letra$artista), " - ",
@@ -26,3 +27,6 @@ purrr::walk(1:nrow(letras), function(ix_letra) {
 # Salvar letras em txt zipadas
 letras_path <- Sys.glob(paths = "inst/txt/*.txt")
 zip::zip(zipfile = "inst/letras.zip", files = letras_path, mode = 'cherry-pick')
+
+# Deletar letras em txt
+unlink("inst/txt", recursive = TRUE)
