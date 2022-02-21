@@ -27,4 +27,5 @@ Imports:
     future,
     glue,
     rvest,
-    tibble
+    tibble,
+    readr
