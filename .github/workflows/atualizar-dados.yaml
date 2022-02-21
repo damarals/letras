@@ -33,7 +33,7 @@ jobs:
         shell: Rscript {0}
       - name: Execute Script
         run: |
-          Rscript data-raw/atualizar_dados.R
+          Rscript data-raw/atualizar-dados.R
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
