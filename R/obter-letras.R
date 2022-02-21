@@ -82,6 +82,7 @@ obter_letras <- function() {
 #' @return Um dataframe atualizado com conteudo de acordo com a tabela
 #' escolhida.
 #'
+#' @export
 #' @noRd
 dados_atualizados <- function(tabela) {
   u <- glue::glue('https://github.com/damarals/letras/blob/master/data/{tabela}.rda?raw=true')

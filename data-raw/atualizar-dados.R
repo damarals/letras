@@ -1,7 +1,7 @@
 # Obter letras atualizadas
-artistas <- letras::obter_artistas()
-musicas <- tidyr::drop_na(letras::obter_musicas())
-letras <- tidyr::drop_na(letras::obter_letras())
+artistas <- letras:::obter_artistas()
+musicas <- tidyr::drop_na(letras:::obter_musicas())
+letras <- tidyr::drop_na(letras:::obter_letras())
 
 # Salvar letras no pacote
 usethis::use_data(artistas, overwrite = TRUE, compress = "xz")
