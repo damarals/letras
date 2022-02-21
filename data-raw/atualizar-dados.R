@@ -4,9 +4,9 @@ musicas <- tidyr::drop_na(letras:::obter_musicas())
 letras <- tidyr::drop_na(letras:::obter_letras())
 
 # Salvar letras no pacote
-usethis::use_data(artistas, overwrite = TRUE, compress = "gzip")
-usethis::use_data(musicas, overwrite = TRUE, compress = "gzip")
-usethis::use_data(letras, overwrite = TRUE, compress = "gzip")
+usethis::use_data(artistas, overwrite = TRUE, compress = "bzip2")
+usethis::use_data(musicas, overwrite = TRUE, compress = "bzip2")
+usethis::use_data(letras, overwrite = TRUE, compress = "bzip2")
 
 # Salvar letras em csv
 readr::write_csv(artistas, "inst/csv/artistas.csv")

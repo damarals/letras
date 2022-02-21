@@ -6,7 +6,7 @@
 \title{Nomes e Links do Portfolio Relativo de Musicas de Artistas do Genero
 Gospel no Portal de Letras Vagalume.}
 \format{
-Um conjunto de dados com 348 artistas e 2 variaveis:
+Um conjunto de dados com 684 artistas e 2 variaveis:
 \describe{
 \item{nome}{nome do artista}
 \item{href}{link relativo para o portfolio de musicas do artista}

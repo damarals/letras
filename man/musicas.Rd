@@ -6,7 +6,7 @@
 \title{Nomes do Artista e Musicas, com Links Relativos das Letras do Genero
 Gospel no Portal de Letras Vagalume.}
 \format{
-Um conjunto de dados com 42489 musicas e 3 variaveis:
+Um conjunto de dados com 42842 musicas e 3 variaveis:
 \describe{
 \item{nome}{nome do artista}
 \item{musica}{nome da musica}
