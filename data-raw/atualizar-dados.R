@@ -17,8 +17,8 @@ readr::write_csv(letras, "inst/csv/letras.csv")
 purrr::walk(1:nrow(letras), function(ix_letra) {
   letra <- letras[ix_letra,]
   letra_txt <- glue::glue("{letra$musica}\n{letra$artista}\n\n{letra$letra}")
-  nome_arq <- paste0(gsub('[[:punct:]]+','', letra$musica), " - ",
-                     gsub('[[:punct:]]+','', letra$artista))
+  nome_arq <- paste0(gsub('[[:punct:]]+','', letra$artista), " - ",
+                     gsub('[[:punct:]]+','', letra$musica))
   write.table(letra_txt, glue::glue("inst/txt/{nome_arq}.txt"),
               append = FALSE)
 })
