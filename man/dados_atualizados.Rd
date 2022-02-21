@@ -17,5 +17,5 @@ escolhida.
 Funcao para leitura de tabelas atualizadas
 }
 \examples{
-dados_atualizados(tabela = 'letras')
+dados_atualizados(tabela = 'artistas')
 }
