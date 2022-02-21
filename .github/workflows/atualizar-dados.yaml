@@ -1,0 +1,47 @@
+on:
+  schedule:
+  - cron: "0 3 * * *"
+  push:
+    branches:
+      - master
+
+name: update-data
+
+jobs:
+  render:
+    name: update-data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-pandoc@v1
+      - name: Install dependencies ubuntu
+        run: |
+          sudo apt-get install libcurl4-openssl-dev
+          sudo apt-get install libssl-dev
+          sudo apt-get install libxml2-dev
+      - name: Install rmarkdown, remotes, and the local package
+        run: |
+          install.packages("remotes")
+          remotes::install_local(".")
+          remotes::install_cran("usethis")
+          remotes::install_cran("rmarkdown")
+          remotes::install_cran("tidyr")
+          remotes::install_cran("zip")
+        shell: Rscript {0}
+      - name: Execute Script
+        run: |
+          Rscript data-raw/atualizar_dados.R
+      - name: Commit results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git add data/.
+          git add inst/txt/.
+          git add inst/letras.zip
+          git add README.md
+          git add README.Rmd
+          git commit -m ':robot: banco de letras atualizadas' || echo "banco de letras atualizadas"
+          git push origin || echo "banco de letras atualizadas"
