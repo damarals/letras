@@ -21,7 +21,7 @@ purrr::walk(1:nrow(letras), function(ix_letra) {
   nome_arq <- paste0(gsub('[[:punct:]]+','', letra$artista), " - ",
                      gsub('[[:punct:]]+','', letra$musica))
   write.table(letra_txt, glue::glue("inst/txt/{nome_arq}.txt"),
-              append = FALSE)
+              append = FALSE, row.names = FALSE, col.names = FALSE)
 })
 
 # Salvar letras em txt zipadas
