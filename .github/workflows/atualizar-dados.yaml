@@ -1,15 +1,15 @@
 on:
   schedule:
-  - cron: "0 3 * * *"
+  - cron: "0 3 * * 0"
   push:
     branches:
       - master
 
-name: update-data
+name: atualizar-dados
 
 jobs:
   render:
-    name: update-data
+    name: atualizar-dados
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
