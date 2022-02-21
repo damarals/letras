@@ -86,6 +86,6 @@ obter_letras <- function() {
 #' @examples
 #' dados_atualizados(tabela = 'artistas')
 dados_atualizados <- function(tabela) {
-  u <- glue::glue('http://raw.githubusercontent.com/damarals/letras/master/inst/csv/{tabela}.csv')
-  readr::read_csv(u, locale = readr::locale(encoding = "UTF-8"))
+  u <- glue::glue('https://raw.githubusercontent.com/damarals/letras/master/inst/csv/{tabela}.csv')
+  readr::read_csv(u, locale = readr::locale(encoding = "UTF-8"), show_col_types = FALSE)
 }

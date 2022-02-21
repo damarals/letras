@@ -13,44 +13,63 @@ knitr::opts_chunk$set(
 )
 ```
 
-# letras
+# Pacote Letras
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/damarals/letras/workflows/R-CMD-check/badge.svg)](https://github.com/damarals/letras/actions)
+[![atualizar-dados](https://github.com/damarals/letras/actions/workflows/atualizar-dados.yaml/badge.svg)](https://github.com/damarals/letras/actions/workflows/atualizar-dados.yaml)
 <!-- badges: end -->
 
-The goal of letras is to ...
+O objetivo deste pacote é disponibilizar as letras do gênero Gospel (Católica, Protestante, Internacional, etc). O pacote é atualizado semanalmente através de um workflow com [GitHub Actions](https://github.com/damarals/letras/actions).
 
-## Installation
+Os dados foram obtidos do [Portal Letras](https://www.letras.mus.br/).
 
-You can install the development version of letras from [GitHub](https://github.com/) with:
+__Caso você não utilize R__, é possível __fazer download das letras__ através dos seguintes links:
+
+  - *Letras Individuais* [Arquivo `.zip`](https://github.com/damarals/letras/raw/master/inst/letras.zip) 
+  - *Tabela de Artistas* [Arquivo `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/artistas.csv) 
+  - *Tabela de Músicas* [Arquivo `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/musicas.csv) 
+  - *Tabela de Letras* [Arquivo `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/letras.csv) 
+  
+O arquivo de letras individuais, contem todas as letras do gênero gospel em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares* de apresentações em igrejas. Já os arquivos `.csv` foram salvos com encoding UTF-8 e separados por vírgula.  
+
+## Instalação
+
+Este pacote pode ser instalado através do  [GitHub](https://github.com/) utilizando o seguinte código em `R`:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("damarals/letras")
+library(letras)
+```
+## Como usar?
+
+Caso você tenha conexão à internet, é possível buscar a base atualizada usando a função `dados_atualizados()`:
+
+```{r}
+letras_atualizadas <- letras::dados_atualizados(tabela = 'letras') 
 ```
 
-## Example
+Caso você não tenha conexão à internet, você pode utilizar a base
+disponível no pacote. Porém as mesmas estarão atualizadas até a data em
+que você instalou (ou atualizou) o pacote. 
 
-This is a basic example which shows you how to solve a common problem:
+Abaixo segue um exemplo da base disponível:
 
 ```{r example}
-library(letras)
-## basic example code
+dplyr::glimpse(letras::letras)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+### Exemplo de tabela
 
-```{r cars}
-summary(cars)
+```{r echo=FALSE}
+letras_atualizadas <- dplyr::mutate(letras::letras, 
+                                    letra = stringr::str_trunc(letra, 20))
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/v1/examples>.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
+library(magrittr)
+letras_atualizadas %>% 
+  head(5) %>%
+  knitr::kable() 
 ```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

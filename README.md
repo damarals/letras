@@ -1,57 +1,86 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# letras
+# Pacote Letras
 
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/damarals/letras/workflows/R-CMD-check/badge.svg)](https://github.com/damarals/letras/actions)
+[![atualizar-dados](https://github.com/damarals/letras/actions/workflows/atualizar-dados.yaml/badge.svg)](https://github.com/damarals/letras/actions/workflows/atualizar-dados.yaml)
 <!-- badges: end -->
 
-The goal of letras is to …
+O objetivo deste pacote é disponibilizar as letras do gênero Gospel
+(Católica, Protestante, Internacional, etc). O pacote é atualizado
+semanalmente através de um workflow com [GitHub
+Actions](https://github.com/damarals/letras/actions).
 
-## Installation
+Os dados foram obtidos do [Portal Letras](https://www.letras.mus.br/).
 
-You can install the development version of letras from
-[GitHub](https://github.com/) with:
+**Caso você não utilize R**, é possível **fazer download das letras**
+através dos seguintes links:
+
+-   *Letras Individuais* [Arquivo
+    `.zip`](https://github.com/damarals/letras/raw/master/inst/letras.zip)
+-   *Tabela de Artistas* [Arquivo
+    `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/artistas.csv)
+-   *Tabela de Músicas* [Arquivo
+    `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/musicas.csv)
+-   *Tabela de Letras* [Arquivo
+    `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/letras.csv)
+
+O arquivo de letras individuais, contem todas as letras do gênero gospel
+em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares*
+de apresentações em igrejas. Já os arquivos `.csv` foram salvos com
+encoding UTF-8 e separados por vírgula.
+
+## Instalação
+
+Este pacote pode ser instalado através do [GitHub](https://github.com/)
+utilizando o seguinte código em `R`:
 
 ``` r
 # install.packages("devtools")
 devtools::install_github("damarals/letras")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
 library(letras)
-## basic example code
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+## Como usar?
+
+Caso você tenha conexão à internet, é possível buscar a base atualizada
+usando a função `dados_atualizados()`:
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+letras_atualizadas <- letras::dados_atualizados(tabela = 'letras') 
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this. You could also
-use GitHub Actions to re-render `README.Rmd` every time you push. An
-example workflow can be found here:
-<https://github.com/r-lib/actions/tree/v1/examples>.
+Caso você não tenha conexão à internet, você pode utilizar a base
+disponível no pacote. Porém as mesmas estarão atualizadas até a data em
+que você instalou (ou atualizou) o pacote.
 
-You can also embed plots, for example:
+Abaixo segue um exemplo da base disponível:
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+``` r
+dplyr::glimpse(letras::letras)
+#> Rows: 42,487
+#> Columns: 3
+#> $ artista <chr> "Harpa Cristã", "Harpa Cristã", "Harpa Cristã", "Harpa Cristã"~
+#> $ musica  <chr> "A Alma Abatida", "A Aspiração da Alma", "A Barca da Vida", "À~
+#> $ letra   <chr> "Se tu, minh'alma, a Deus suplicas,\nE não recebes, confiando ~
+```
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+### Exemplo de tabela
+
+``` r
+library(magrittr)
+letras_atualizadas %>% 
+  head(5) %>%
+  knitr::kable() 
+```
+
+| artista      | musica              | letra              |
+|:-------------|:--------------------|:-------------------|
+| Harpa Cristã | A Alma Abatida      | Se tu, minh’alma,… |
+| Harpa Cristã | A Aspiração da Alma | Minh’alma aspira … |
+| Harpa Cristã | A Barca da Vida     | Eu tenho de andar… |
+| Harpa Cristã | À Beira da Estrada  | À beira da estrad… |
+| Harpa Cristã | A Ceia do Senhor    | Senhor, reunidos … |
