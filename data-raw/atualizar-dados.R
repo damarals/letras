@@ -41,7 +41,7 @@ zip::zip(zipfile = "inst/letras.zip", files = letras_path, mode = 'cherry-pick')
 
 # Salvar letras em txt zipadas (Holyrics)
 letras_holyrics_path <- Sys.glob(paths = "inst/txt_holyrics/*.txt")
-zip::zip(zipfile = "inst/letras_holyrics.zip", files = letras_path, mode = 'cherry-pick')
+zip::zip(zipfile = "inst/letras_holyrics.zip", files = letras_holyrics_path, mode = 'cherry-pick')
 
 # Deletar letras em txt
 unlink("inst/txt", recursive = TRUE)
