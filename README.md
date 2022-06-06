@@ -21,6 +21,8 @@ através dos seguintes links:
 
 -   *Letras Individuais* [Arquivo
     `.zip`](https://github.com/damarals/letras/raw/master/inst/letras.zip)
+-   *Letras Individuais (Holyrics)* [Arquivo
+    `.zip`](https://github.com/damarals/letras/raw/master/inst/letras_holyrics.zip)
 -   *Tabela de Artistas* [Arquivo
     `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/artistas.csv)
 -   *Tabela de Músicas* [Arquivo
@@ -32,10 +34,9 @@ O arquivo de letras individuais, contem todas as letras do gênero gospel
 em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares*
 de apresentações em igrejas. Já os arquivos `.csv` foram salvos com
 encoding UTF-8 e separados por vírgula. Adicionalmente, há um pacote de
-letras para o software
-[*Holyrics*](https://github.com/damarals/letras/raw/master/inst/letras_holyrics.zip)
-(*Importar Música(s)*: Música -> Importar -> Outros -> TXT File
-(ISO-8859-1)), que possui algumas peculiaridades.
+letras para o software *Holyrics* (*Importar Música(s)*: Música ->
+Importar -> Outros -> TXT File (ISO-8859-1)), que possui algumas
+peculiaridades.
 
 ## Instalação
 
