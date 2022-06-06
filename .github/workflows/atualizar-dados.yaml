@@ -42,6 +42,7 @@ jobs:
           git add data/.
           git add inst/csv/.
           git add inst/letras.zip
+          git add inst/letras_holyrics.zip
           git add README.md
           git add README.Rmd
           git commit -m ':robot: banco de letras atualizado' || echo "banco de letras atualizado"

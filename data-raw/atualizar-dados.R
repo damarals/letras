@@ -18,8 +18,10 @@ dir.create("inst/txt")
 purrr::walk(1:nrow(letras), function(ix_letra) {
   letra <- letras[ix_letra,]
   letra_txt <- glue::glue("{letra$musica}\n{letra$artista}\n\n{letra$letra}")
-  nome_arq <- paste0(gsub('[[:punct:]]+','', letra$artista), " - ",
-                     gsub('[[:punct:]]+','', letra$musica))
+  nome_arq <- paste0(gsub('[[:punct:]\t]+','', letra$artista), " - ",
+                     gsub('[[:punct:]\t]+','', letra$musica))
+  nome_arq <- stringr::str_remove_all(nome_arq, "[^[:alnum:][:blank:]?&/\\-]")
+  nome_arq <- stringr::str_remove_all(nome_arq, "U00..")
   write.table(letra_txt, glue::glue("inst/txt/{nome_arq}.txt"), quote = FALSE,
               row.names = FALSE, col.names = FALSE)
 })
@@ -29,8 +31,10 @@ dir.create("inst/txt_holyrics")
 purrr::walk(1:nrow(letras), function(ix_letra) {
   letra <- letras[ix_letra,]
   letra_txt <- glue::glue("{letra$letra}")
-  nome_arq <- paste0(gsub('[[:punct:]]+','', letra$musica), " - ",
-                     gsub('[[:punct:]]+','', letra$artista))
+  nome_arq <- paste0(gsub('[[:punct:]\t]+','', letra$musica), " - ",
+                     gsub('[[:punct:]\t]+','', letra$artista))
+  nome_arq <- stringr::str_remove_all(nome_arq, "[^[:alnum:][:blank:]?&/\\-]")
+  nome_arq <- stringr::str_remove_all(nome_arq, "U00..")
   write.table(letra_txt, glue::glue("inst/txt_holyrics/{nome_arq}.txt"), quote = FALSE,
               row.names = FALSE, col.names = FALSE)
 })
@@ -41,7 +45,7 @@ zip::zip(zipfile = "inst/letras.zip", files = letras_path, mode = 'cherry-pick')
 
 # Salvar letras em txt zipadas (Holyrics)
 letras_holyrics_path <- Sys.glob(paths = "inst/txt_holyrics/*.txt")
-zip::zip(zipfile = "inst/letras_holyrics.zip", files = letras_path, mode = 'cherry-pick')
+zip::zip(zipfile = "inst/letras_holyrics.zip", files = letras_holyrics_path, mode = 'cherry-pick')
 
 # Deletar letras em txt
 unlink("inst/txt", recursive = TRUE)
