@@ -31,7 +31,11 @@ através dos seguintes links:
 O arquivo de letras individuais, contem todas as letras do gênero gospel
 em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares*
 de apresentações em igrejas. Já os arquivos `.csv` foram salvos com
-encoding UTF-8 e separados por vírgula.
+encoding UTF-8 e separados por vírgula. Adicionalmente, há um pacote de
+letras para o software
+[*Holyrics*](https://github.com/damarals/letras/raw/master/inst/letras_holyrics.zip)
+(*Importar Música(s)*: Música -> Importar -> Outros -> TXT File
+(ISO-8859-1)), que possui algumas peculiaridades.
 
 ## Instalação
 
@@ -61,11 +65,11 @@ Abaixo segue um exemplo da base disponível:
 
 ``` r
 dplyr::glimpse(letras::letras)
-#> Rows: 42,487
+#> Rows: 49,994
 #> Columns: 3
 #> $ artista <chr> "Harpa Cristã", "Harpa Cristã", "Harpa Cristã", "Harpa Cristã"~
-#> $ musica  <chr> "A Alma Abatida", "A Aspiração da Alma", "A Barca da Vida", "À~
-#> $ letra   <chr> "Se tu, minh'alma, a Deus suplicas,\nE não recebes, confiando ~
+#> $ musica  <chr> "Porque Ele Vive", "A Alma Abatida", "Solta O Cabo da Nau", "E~
+#> $ letra   <chr> "Deus enviou\nSeu Filho amado\nPara morrer, em meu lugar\nNa c~
 ```
 
 ### Exemplo de tabela
@@ -77,10 +81,12 @@ letras_atualizadas %>%
   knitr::kable() 
 ```
 
-| artista      | musica              | letra              |
-|:-------------|:--------------------|:-------------------|
-| Harpa Cristã | A Alma Abatida      | Se tu, minh’alma,… |
-| Harpa Cristã | A Aspiração da Alma | Minh’alma aspira … |
-| Harpa Cristã | A Barca da Vida     | Eu tenho de andar… |
-| Harpa Cristã | À Beira da Estrada  | À beira da estrad… |
-| Harpa Cristã | A Ceia do Senhor    | Senhor, reunidos … |
+| artista          | musica                        | letra              |
+|:-----------------|:------------------------------|:-------------------|
+| Harpa Cristã     | Porque Ele Vive               | Deus enviou        |
+| Seu F…           |                               |                    |
+| Harpa Cristã     | A Alma Abatida                | Se tu, minh’alma,… |
+| Harpa Cristã     | Solta O Cabo da Nau           | 1 Oh! Por que duv… |
+| Harpa Cristã     | Em Fervente Oração            | 1                  |
+| Em fervente ora… |                               |                    |
+| Harpa Cristã     | Olhai Para O Cordeiro de Deus | Livres de pecado … |

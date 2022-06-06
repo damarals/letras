@@ -31,7 +31,7 @@ __Caso você não utilize R__, é possível __fazer download das letras__ atrav�
   - *Tabela de Músicas* [Arquivo `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/musicas.csv) 
   - *Tabela de Letras* [Arquivo `.csv`](https://github.com/damarals/letras/raw/master/inst/csv/letras.csv) 
   
-O arquivo de letras individuais, contem todas as letras do gênero gospel em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares* de apresentações em igrejas. Já os arquivos `.csv` foram salvos com encoding UTF-8 e separados por vírgula.  
+O arquivo de letras individuais, contem todas as letras do gênero gospel em `.txt` zipadas, esse formato é aceito pelos mais comuns *softwares* de apresentações em igrejas. Já os arquivos `.csv` foram salvos com encoding UTF-8 e separados por vírgula. Adicionalmente, há um pacote de letras para o software [_Holyrics_](https://github.com/damarals/letras/raw/master/inst/letras_holyrics.zip) (*Importar Música(s)*: Música -> Importar -> Outros -> TXT File (ISO-8859-1)), que possui algumas peculiaridades.
 
 ## Instalação
 
