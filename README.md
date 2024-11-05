@@ -1,14 +1,17 @@
 # Letras
 
 <div align="center">
-   <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/test.yml?label=ci" alt="Status dos Testes" />
+   <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/test.yaml?label=ci" alt="Status dos CI" />
+   <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/release.yaml?label=cd" alt="Status dos CD" />
     <a href="https://codecov.io/gh/damarals/letras" >
       <img src="https://codecov.io/gh/damarals/letras/graph/badge.svg?token=OZX22OK364" alt="Cobertura de Código"/>
    </a>
 </div>
 
-<div align="center"><strong>Coleta e Organização Automatizada de Letras Gospel</strong></div>
-<div align="center">Uma ferramenta Python para coletar, analisar e organizar letras gospel do letras.mus.br</div>
+<div align="center">
+   <strong>Coleta e Organização Automatizada de Letras Gospel</strong>
+</div>
+<div align="center">Uma ferramenta Python para coletar e organizar letras gospel do letras.mus.br</div>
 
 <br />
 <div align="center">
@@ -25,18 +28,17 @@ Letras é uma aplicação Python desenvolvida para automatizar a coleta e organi
 - Coleta automatizada de letras gospel do letras.mus.br
 - Processamento multithread para coleta eficiente de dados
 - Banco de dados DuckDB para armazenamento estruturado
-- Rastreamento de visualizações dos artistas
 - Arquivos de texto individuais para cada música
 - Detecção inteligente de novas músicas
 - Geração automática de relatórios de release
 - Atualizações automáticas semanais via GitHub Actions
-- Interface CLI rica com acompanhamento de progresso
+- Interface CLI com acompanhamento de progresso
 
 ## Releases
 
 O projeto é atualizado automaticamente todas as semanas através do GitHub Actions. Cada release inclui:
 
-- 📝 **Arquivo ZIP** com todas as letras em formato texto
+- 📝 **Arquivo ZIP** com todas as letras em formato de texto (.txt)
 - 📊 **Banco de Dados** DuckDB com dados estruturados
 - 📋 **Notas de Release** detalhando:
   - Total de músicas e artistas adicionados
