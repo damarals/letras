@@ -1,5 +1,26 @@
-.Rproj.user
-.Rhistory
-.Rdata
-.httr-oauth
-.DS_Store
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual Environment
+.env
+.venv/
+
+# Tests and Coverage
+.coverage
+coverage.xml
+
+# Project specific
+data/*
+
+# IDE
+.vscode/
+.idea/
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# Repo-to-text
+*repo-to-text*
