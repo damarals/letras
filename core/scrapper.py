@@ -141,7 +141,7 @@ def get_artist_songs(artist_slug: str) -> pl.DataFrame:
     """
     try:
         config = load_config()
-        response = requests.get(f"{config.base_url}{artist_slug}")
+        response = requests.get(f"{config.base_url}/{artist_slug}/")
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # Try default layout first
@@ -178,7 +178,7 @@ def get_artist_song_lyrics(artist_slug: str, song_slug: str) -> str:
     """
     try:
         config = load_config()
-        url = f"{config.base_url}{artist_slug}/{song_slug}/"
+        url = f"{config.base_url}/{artist_slug}/{song_slug}/"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
         
