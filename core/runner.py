@@ -323,7 +323,7 @@ Os principais artistas desta atualização foram:
 
     def get_artist_views(self, artist_slug: str) -> int:
         """Get artist views from their page"""
-        response = requests.get(f"{self.config.base_url}{artist_slug}")
+        response = requests.get(f"{self.config.base_url}/{artist_slug}/")
         soup = BeautifulSoup(response.text, 'html.parser')
         return extract_artist_views(soup)
     

@@ -47,7 +47,7 @@ def test_get_artist_views(runner):
         views = runner.get_artist_views('artist-slug')
         
         assert views == 1234
-        mock_get.assert_called_once_with(f"{runner.config.base_url}artist-slug")
+        mock_get.assert_called_once_with(f"{runner.config.base_url}/artist-slug")
 
 def test_process_song_success(runner):
     """Test successful song processing"""
