@@ -66,7 +66,7 @@ Em águas calmas me guiará,
 Minha alma ele vem restaurar
 """
     
-    with patch('core.runner.get_artist_song_lyrics', return_value=mock_lyrics):
+    with patch('core.runner.get_artist_song_lyrics', return_value=(mock_lyrics, 1234)):
         success = runner.process_song(song_data)
         
         assert success
@@ -86,7 +86,7 @@ def test_process_song_no_lyrics(runner):
         'artist_slug': 'joao-silva'
     }
     
-    with patch('core.runner.get_artist_song_lyrics', return_value=None):
+    with patch('core.runner.get_artist_song_lyrics', return_value=(None, 0)):
         success = runner.process_song(song_data)
         assert not success
 
@@ -96,13 +96,10 @@ def test_create_release_notes(runner):
         'artist_name': ['Artist 1', 'Artist 2'],
         'name': ['Song 1', 'Song 2'],
         'artist_views': [1000, 2000],
-        'artist_id': [1, 2],
-        'slug': ['song-1', 'song-2']
+        'artist_id': [1, 2]
     })
     
     notes = runner.create_release_notes(test_data)
     assert isinstance(notes, str)
     assert 'Artist 1' in notes
     assert 'Artist 2' in notes
-    assert 'Song 1' in notes
-    assert 'Song 2' in notes

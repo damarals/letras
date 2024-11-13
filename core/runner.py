@@ -15,10 +15,11 @@ from core.utils import load_config, setup_database, sanitize_filename
 from core.filters import LyricsFilter
 
 class GospelLyricsRunner:
-    def __init__(self):
+    def __init__(self, verbose=1):
         """Initialize the runner with necessary paths and configurations"""
         self.console = Console()
         self.config = load_config()
+        self.verbose = verbose
         
         # Setup paths
         self.data_dir = Path("data")
@@ -149,9 +150,10 @@ class GospelLyricsRunner:
                             
                             if not new_songs.is_empty():
                                 all_songs.append(new_songs)
-                                self.console.print(
-                                    f"[bold blue]INFO[/bold blue]     [white]Found {len(new_songs)} new songs from {artist_name}"
-                                )
+                                if self.verbose == 1:
+                                    self.console.print(
+                                        f"[bold blue]INFO[/bold blue]     [white]Found {len(new_songs)} new songs from {artist_name}"
+                                    )
                 except Exception as e:
                     self.console.print(f"[bold red]ERROR[/bold red]    Failed to collect songs from {artist_info['slug']}: {str(e)}")
         
@@ -166,14 +168,14 @@ class GospelLyricsRunner:
         Process a single song, including scraping lyrics and storage
         """
         try:
-            # Extract lyrics
-            lyrics = self.scrape_lyrics(song_data['artist_slug'], song_data['slug'])
+            # Extract lyrics and views
+            lyrics, views = self.scrape_lyrics(song_data['artist_slug'], song_data['slug'])
             if not lyrics:
                 self.console.print(
                     f"[bold yellow]WARNING[/bold yellow]     [white]No lyrics found for '{song_data['name']}' by {song_data['artist_name']}"
                 )
                 return False
-           
+        
             # Apply lyrics filter
             if not self.filters.should_include_lyrics(lyrics):
                 return False
@@ -184,16 +186,16 @@ class GospelLyricsRunner:
             
             # Store in database
             with self.db_lock:
-                # Insert song
+                # Insert song with views
                 self.conn.execute("""
-                    INSERT INTO songs (artist_id, name, slug)
-                    SELECT ?, ?, ?
+                    INSERT INTO songs (artist_id, name, slug, views)
+                    SELECT ?, ?, ?, ?
                     WHERE NOT EXISTS (
                         SELECT 1 FROM songs 
                         WHERE artist_id = ? AND slug = ?
                     )
-                """, [song_data['artist_id'], song_data['name'], song_data['slug'],
-                     song_data['artist_id'], song_data['slug']])
+                """, [song_data['artist_id'], song_data['name'], song_data['slug'], views,
+                    song_data['artist_id'], song_data['slug']])
                 
                 # Get song ID
                 song_id = self.conn.execute(
@@ -209,6 +211,11 @@ class GospelLyricsRunner:
                         SELECT 1 FROM lyrics WHERE song_id = ?
                     )
                 """, [song_id, lyrics, song_id])
+            
+            if self.verbose:
+                self.console.print(
+                    f"[bold blue]INFO[/bold blue]     [white]Added '{song_data['name']}' ({views:,} views)"
+                )
             
             return True
             
@@ -229,14 +236,9 @@ class GospelLyricsRunner:
             pl.count('name').alias('songs_count')
         ]).sort('views', descending=True).head(5)
         
-        # Get all additions grouped by artist
-        all_additions = new_songs_df.group_by('artist_name').agg([
-            pl.col('name').alias('songs')
-        ]).sort('artist_name')
-        
         # Create markdown
         total_songs = len(new_songs_df)
-        total_artists = len(all_additions)
+        total_artists = len(new_songs_df.unique('artist_name'))
         
         notes = f"""# Atualização de Letras Gospel
 
@@ -250,15 +252,6 @@ Os principais artistas desta atualização foram:
         
         for row in top_artists.iter_rows(named=True):
             notes += f"- **{row['artist_name']}** ({row['songs_count']} músicas)\n"
-        
-        notes += "\n<details>\n<summary>Ver todas as adições</summary>\n\n"
-        
-        for row in all_additions.iter_rows(named=True):
-            notes += f"\n### {row['artist_name']}\n\n"
-            for song in row['songs']:
-                notes += f"- {song}\n"
-        
-        notes += "\n</details>"
         
         return notes
 

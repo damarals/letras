@@ -64,6 +64,7 @@ def setup_database(db_path: Path) -> duckdb.DuckDBPyConnection:
             artist_id INTEGER,
             name VARCHAR,
             slug VARCHAR,
+            views INTEGER DEFAULT 0,
             added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (artist_id) REFERENCES artists(id)
         )

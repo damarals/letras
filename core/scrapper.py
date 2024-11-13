@@ -26,7 +26,7 @@ def get_artists() -> pl.DataFrame:
             for link in soup.find_all('a')
         ]
         
-        return pl.DataFrame(artists_data)
+        return pl.DataFrame(artists_data).sample(10) # Only for test workflow
     
     except Exception as e:
         raise Exception(f"Error scraping artists data: {str(e)}")
@@ -160,9 +160,9 @@ def get_artist_songs(artist_slug: str) -> pl.DataFrame:
         raise Exception(f"Error scraping songs: {str(e)}")
 
 
-def get_artist_song_lyrics(artist_slug: str, song_slug: str) -> str:
+def get_artist_song_lyrics(artist_slug: str, song_slug: str) -> tuple[str, int]:
     """
-    Scrapes the lyrics of a specific song from an artist.
+    Scrapes the lyrics and views of a specific song from an artist.
     
     Parameters:
     -----------
@@ -173,14 +173,17 @@ def get_artist_song_lyrics(artist_slug: str, song_slug: str) -> str:
     
     Returns:
     --------
-    str
-        The song lyrics with paragraphs separated by newlines
+    tuple[str, int]
+        The song lyrics with paragraphs separated by newlines and the view count
     """
     try:
         config = load_config()
         url = f"{config.base_url}/{artist_slug}/{song_slug}/"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract views
+        views = extract_song_views(soup)
         
         # Find the lyrics container
         lyrics_div = soup.find('div', class_='lyric-original')
@@ -190,20 +193,42 @@ def get_artist_song_lyrics(artist_slug: str, song_slug: str) -> str:
         # Process each paragraph
         paragraphs = []
         for p in lyrics_div.find_all('p'):
-            # Get all text from paragraph, including marked annotations
             lines = []
             for element in p.stripped_strings:
                 lines.append(element)
-            # Join lines with line breaks and add to paragraphs
             paragraphs.append('\n'.join(lines))
         
-        # Join paragraphs with double line breaks
         lyrics = '\n\n'.join(paragraphs)
         
         if not lyrics.strip():
             raise Exception("No lyrics found")
             
-        return lyrics
+        return lyrics, views
     
     except Exception as e:
         raise Exception(f"Error scraping lyrics: {str(e)}")
+    
+def extract_song_views(soup: BeautifulSoup) -> int:
+    """
+    Extract song's view count from the page.
+    
+    Parameters:
+    -----------
+    soup : BeautifulSoup
+        Parsed HTML content
+    
+    Returns:
+    --------
+    int
+        Number of views, or 0 if not found
+    """
+    try:
+        views_div = soup.find('div', class_='head-info-exib')
+        if views_div:
+            views_text = views_div.find('b').text.strip()
+            # Remove pontos e converte para inteiro
+            views = int(views_text.replace('.', ''))
+            return views
+    except Exception:
+        pass
+    return 0

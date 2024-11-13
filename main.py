@@ -1,11 +1,17 @@
+import argparse
 from rich.console import Console
 
 from core.runner import GospelLyricsRunner
 
 console = Console()
 
+parser = argparse.ArgumentParser(description='Gospel Lyrics Scraper')
+parser.add_argument('--verbose', '-v', type=int, choices=[0, 1], default=1,
+                    help='Verbosity level (0: minimal, 1: detailed)')
+
 try:
-    runner = GospelLyricsRunner()
+    args = parser.parse_args()
+    runner = GospelLyricsRunner(verbose=args.verbose)
     runner.run()
     
 except KeyboardInterrupt:
