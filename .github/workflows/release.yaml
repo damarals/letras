@@ -38,7 +38,7 @@ jobs:
     - name: Prepare release files
       run: |
         mkdir release_files
-        cp data/lyrics-*.zip release_files/
+        cp data/letras-*.zip release_files/
         cp data/letras.duckdb release_files/
         cp data/RELEASE_NOTES.md release_files/
         

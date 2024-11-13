@@ -337,8 +337,8 @@ Os principais artistas desta atualização foram:
             f.write(f"{title}\n{artist}\n\n{lyrics}")
             
     def create_archive(self):
-        timestamp = datetime.now().strftime("%Y%m%d")
-        archive_name = f"lyrics-{timestamp}.zip"
+        timestamp = datetime.now().strftime("%d%m%Y")
+        archive_name = f"letras-{timestamp}.zip"
         archive_path = self.data_dir / archive_name
         
         shutil.make_archive(
