@@ -1,5 +1,4 @@
-# Letras
-
+<img alt="Letras banner" src=".github/banner.png" style="border-radius: 15px; max-width: 100%; height: auto; display: block; margin: 0 0 16px 0;"/>
 <div align="center">
    <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/test.yaml?label=ci" alt="Status dos CI" />
    <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/release.yaml?label=cd" alt="Status dos CD" />
