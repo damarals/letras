@@ -35,24 +35,17 @@ jobs:
       id: date
       run: echo "date=$(date +'%d%m%Y')" >> $GITHUB_OUTPUT
         
-    - name: Prepare release files
-      run: |
-        mkdir release_files
-        cp data/letras-*.zip release_files/
-        cp data/letras.duckdb release_files/
-        cp data/RELEASE_NOTES.md release_files/
-        
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          release_files/*
-        body_path: release_files/RELEASE_NOTES.md
+          data/letras-*.zip
+          data/letras.duckdb
+        body_path: data/RELEASE_NOTES.md
         tag_name: v${{ steps.date.outputs.date }}
         name: Letras ${{ steps.date.outputs.date }}
         draft: false
         prerelease: false
-        generate_release_notes: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

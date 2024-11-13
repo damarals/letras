@@ -26,7 +26,7 @@ def get_artists() -> pl.DataFrame:
             for link in soup.find_all('a')
         ]
         
-        return pl.DataFrame(artists_data).sample(10) # Only for test workflow
+        return pl.DataFrame(artists_data)
     
     except Exception as e:
         raise Exception(f"Error scraping artists data: {str(e)}")
