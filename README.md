@@ -20,7 +20,7 @@
 
 ## Introdução
 
-Letras é uma aplicação Python desenvolvida para automatizar a coleta e organização de letras de músicas gospel. O projeto faz a raspagem de dados do letras.mus.br, processa as informações e disponibiliza acesso organizado às letras através de um banco de dados DuckDB e arquivos de texto individuais. O sistema também rastreia a popularidade dos artistas através de suas visualizações.
+Letras é uma aplicação Python desenvolvida para automatizar a coleta e organização de letras de músicas gospel. O projeto faz a raspagem de dados do letras.mus.br, processa as informações e disponibiliza acesso organizado às letras através de um banco de dados DuckDB e arquivos de texto individuais.
 
 ## Funcionalidades
 
@@ -31,7 +31,6 @@ Letras é uma aplicação Python desenvolvida para automatizar a coleta e organi
 - Detecção inteligente de novas músicas
 - Geração automática de relatórios de release
 - Atualizações automáticas semanais via GitHub Actions
-- Interface CLI com acompanhamento de progresso
 
 ## Releases
 
@@ -42,7 +41,6 @@ O projeto é atualizado automaticamente todas as semanas através do GitHub Acti
 - 📋 **Notas de Release** detalhando:
   - Total de músicas e artistas adicionados
   - Top 5 artistas por visualizações
-  - Lista completa de novas adições
 
 Você pode acessar todas as releases através da [página de releases](https://github.com/damarals/letras/releases) do projeto.
 
