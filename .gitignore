@@ -1,26 +1,49 @@
 # Python
 __pycache__/
 *.py[cod]
-.pytest_cache/
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual Environment
+# Virtual environments
 .env
-.venv/
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Tests and Coverage
+# Coverage
 .coverage
 coverage.xml
-
-# Project specific
-data/*
+htmlcov/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# DuckDB
-*.duckdb
-*.duckdb.wal
+# Project
+data/
+!data/.gitkeep
 
-# Repo-to-text
+# Misc
 *repo-to-text*

@@ -31,3 +31,7 @@ USER $USERNAME
 RUN pipx install poetry \
     && poetry config virtualenvs.in-project true \
     && poetry config virtualenvs.prompt "venv"
+
+WORKDIR /home/letras/app
+
+CMD ["tail", "-f", "/dev/null"]

@@ -1,0 +1,65 @@
+name: Incremental Scraping
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for running incremental scraping'
+        required: true
+        default: 'Manual incremental scraping run'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.6.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        
+      - name: Install project
+        run: poetry install --no-interaction
+        
+      - name: Run tests
+        run: |
+          poetry run pytest
+          
+      - name: Run incremental scraping
+        run: |
+          poetry run letras incremental
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            data/*.zip
+            data/*.db
+            data/RELEASE_NOTES.md
+          name: Release ${{ github.run_number }} (Incremental)
+          body_path: data/RELEASE_NOTES.md
+          tag_name: v${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
