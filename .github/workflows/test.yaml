@@ -15,11 +15,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set correct permissions
+      - name: Prepare environment and set permissions
         run: |
-          sudo chown -R 1000:1000 .
           mkdir -p data
-          sudo chown -R 1000:1000 data
+          sudo chown -R 1000:1000 .  # Muda dono de todos os arquivos, incluindo o data
 
       - name: Build and start services
         run: |
