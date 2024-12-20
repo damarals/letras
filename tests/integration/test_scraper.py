@@ -14,7 +14,7 @@ class MockResponse:
     def __init__(self, text_data):
         self._text = text_data
 
-    async def text(self):
+    async def text(self, encoding=None, errors=None):
         return self._text
 
     def raise_for_status(self):
