@@ -1,22 +1,18 @@
 {
-	"name": "Letras",
-	"build": {
-        "dockerfile": "Dockerfile"
-    },
-	"workspaceMount": "source=${localWorkspaceFolder},target=/home/letras/app,type=bind",
-	"workspaceFolder": "/home/letras/app",
-	"features": {
+    "name": "Letras",
+    "dockerComposeFile": [
+        "../docker-compose.yaml",
+        "docker-compose.yaml"
+    ],
+    "service": "app",
+    "workspaceFolder": "/home/letras/app",
+    "features": {
 		"ghcr.io/devcontainers/features/common-utils:2": {},
-		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
-		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {}
+		"ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+			"plugins": "git git-flow F-Sy-H zsh-autosuggestions zsh-completions",
+			"omzPlugins": "https://github.com/z-shell/F-Sy-H https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-completions"
+		},
+		"ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
 	},
-	"remoteUser": "letras",
-	"containerUser": "letras",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-python.python"
-			]
-		}
-	}
+    "remoteUser": "letras"
 }

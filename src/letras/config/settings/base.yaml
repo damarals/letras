@@ -1,0 +1,11 @@
+letras:
+  base_url: "https://www.letras.mus.br"
+  scraping:
+    max_workers: 28
+    timeout: 30
+    delay: 0.5  # delay between requests to avoid rate limiting
+  database:
+    path: "data/letras.db"
+  release:
+    directory: "data"
+    temp_directory: "data/temp"

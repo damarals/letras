@@ -44,6 +44,20 @@ O projeto é atualizado automaticamente todas as semanas através do GitHub Acti
 
 Você pode acessar todas as releases através da [página de releases](https://github.com/damarals/letras/releases) do projeto.
 
+## Instalação usando Docker (Recomendado)
+
+```bash
+# Clone o repositório
+git clone https://github.com/damarals/letras
+cd letras
+
+# Inicie os containers
+docker-compose up -d
+
+# Inicialize o banco de dados
+docker-compose exec app poetry run python -m letras init
+```
+
 ## Instalação usando Poetry
 
 ```bash
@@ -55,7 +69,7 @@ cd letras
 poetry install
 
 # Execute o coletor
-poetry run python main.py
+poetry run python -m letras init
 ```
 
 ## Estrutura dos Dados
@@ -86,8 +100,7 @@ O repositório é atualizado automaticamente toda semana através do GitHub Acti
 4. Gera relatório detalhado das mudanças
 5. Cria uma nova release com:
    - Arquivo ZIP atualizado com todas as letras
-   - Banco de dados atualizado
-   - Notas de release em markdown
+   - Relatório de mudanças em markdown
 
 ## Contribuindo
 

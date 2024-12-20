@@ -1,0 +1,91 @@
+filters:
+  artists:
+    # Palavras chave para excluir artistas específicos
+    exclude_keywords:
+      # Artistas católicos
+      - Padre
+      - Frei
+      - Irmã
+      - Católico
+      - Católica
+      - Ministério Católico
+      - Santuário
+      - Diocese
+      - Sacerdote
+      - Paróquia
+      - Mosteiro
+
+      # Artistas cristãos não protestantes
+      - Testemunhas de Jeová
+      
+      # Artistas religiões não cristãs
+      - Umbanda
+      - Oxum
+      - Axé
+      - Candomblé
+      - Ogum
+      - Espiritismo
+      - Espírita
+      - Kardecista
+      - Orixá
+      - Terreiro
+      - Oxóssi
+      - Iansã
+      - Xamã
+
+  titles:
+    # Palavras chave para excluir títulos de músicas específicos
+    exclude_keywords:
+      # Músicas católicas
+      - Santa Maria
+      - Sacramento
+      - Ave Maria
+      - Terço
+      - Nossa Senhora
+      - Santo Anjo
+      - São Miguel
+      - São Gabriel
+      - São Rafael
+      - Santíssimo
+      - Eucaristia
+      - Divino Pai Eterno
+      - Sagrado Coração
+      - Paróquia
+      - Missa
+      - Novena
+      - Santo Rosário
+      - Ladainha
+      
+      # Músicas não cristãs
+      - Exu
+      - Axé
+      - Orixá
+      - Oxum
+      - Umbanda
+      - Candomblé
+      - Macumba
+      - Pai de Santo
+      - Mãe de Santo
+      - Kardec
+      - Espiritismo
+      - Iemanjá
+
+  lyrics:
+    # Configurações para filtro de letras
+    language: pt  # Código da língua esperada
+    min_length: 100  # Comprimento mínimo da letra (caracteres)
+    max_length: 4000  # Comprimento máximo da letra (caracteres)
+    
+    # Palavras chave que indicam se a letra é adequada
+    content_filters:
+      # Termos que indicam conteúdo não gospel/evangélico
+      exclude_terms:
+        - macumba
+        - terreiro
+        - espiritismo
+        - kardec
+        - santo padre
+        - santa madre
+        - ave maria
+        - pai nosso
+        - rosário

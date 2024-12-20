@@ -1,0 +1,30 @@
+services:
+  app:
+    build: .
+    command: ./.docker/start.sh
+    volumes:
+      - .:/home/letras/app
+      - '/etc/timezone:/etc/timezone:ro'
+      - '/etc/localtime:/etc/localtime:ro'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    ports: 
+      - 5432:5432
+    environment:
+      POSTGRES_DB: letras
+      POSTGRES_USER: letras
+      POSTGRES_PASSWORD: letras
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U letras"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
