@@ -14,39 +14,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 1.6.1
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-          
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-        
-      - name: Install project
-        run: poetry install --no-interaction
-        
-      - name: Run tests
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Prepare environment and set permissions
         run: |
-          poetry run pytest
+          mkdir -p data
+          sudo chown -R 1000:1000 .
+
+      - name: Build and start services
+        run: |
+          docker compose build
+          docker compose up -d
+          sleep 10 # Aguarda containers iniciarem
+
+      - name: Install dependencies
+        run: |
+          docker compose exec -T app poetry install
+
+      - name: Initialize database
+        run: |
+          docker compose exec -T app poetry run python -m letras init
           
       - name: Run full scraping
         run: |
-          poetry run letras full
+          docker compose exec -T app poetry run python -m letras full
 
       - name: Create Release
         id: create_release
@@ -54,10 +46,13 @@ jobs:
         with:
           files: |
             data/*.zip
-            data/*.db
             data/RELEASE_NOTES.md
           name: Release ${{ github.run_number }} (Full)
           body_path: data/RELEASE_NOTES.md
           tag_name: v${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down --volumes
