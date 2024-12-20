@@ -9,48 +9,31 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: test_letras
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install poetry
-        poetry install
+      - uses: actions/checkout@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Run tests
-      env:
-        LETRAS_DB_HOST: localhost
-        LETRAS_DB_PORT: 5432
-        LETRAS_DB_NAME: test_letras
-        LETRAS_DB_USER: test_user
-        LETRAS_DB_PASSWORD: test_pass
-      run: |
-        poetry run pytest tests/ --cov=letras --cov-report=xml
+      - name: Build and start services
+        run: |
+          docker-compose build
+          docker-compose up -d
 
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: true
+      - name: Initialize database
+        run: |
+          docker-compose exec -T app poetry run python -m letras init
+
+      - name: Run tests
+        run: |
+          docker-compose exec -T app poetry run pytest tests/ --cov=letras --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: true
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose down
