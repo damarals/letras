@@ -15,10 +15,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Prepare environment
+      - name: Set correct permissions
         run: |
+          sudo chown -R 1000:1000 .
           mkdir -p data
-          chmod -R 777 data
+          sudo chown -R 1000:1000 data
 
       - name: Build and start services
         run: |
@@ -26,10 +27,9 @@ jobs:
           docker compose up -d
           sleep 10 # Aguarda containers iniciarem
 
-      # Roda o poetry install antes para garantir que o virtualenv está criado
       - name: Install dependencies
         run: |
-          docker compose exec -T app bash -c "cd /home/letras/app && poetry install"
+          docker compose exec -T app poetry install
 
       - name: Initialize database
         run: |
