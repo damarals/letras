@@ -49,9 +49,7 @@ class TestBaseRunner:
     @pytest.fixture
     async def runner(self, mock_service, mock_scraper, mock_repository, db_config):
         runner = FullRunner(
-            db_config=db_config,
-            base_url="http://test.com",
-            verbose=False
+            db_config=db_config, base_url="http://test.com", verbose=False
         )
 
         runner.service = mock_service
@@ -115,23 +113,29 @@ class TestBaseRunner:
         mock_process = MagicMock()
         mock_process.returncode = 0
         mock_process.communicate = AsyncMock(return_value=(b"", b""))
-        
+
         # Mock both PostgresUtils class and subprocess
         mock_postgres_utils = MagicMock()
-        mock_postgres_utils.create_backup = AsyncMock(return_value=str(temp_dir / "backup.sql"))
+        mock_postgres_utils.create_backup = AsyncMock(
+            return_value=str(temp_dir / "backup.sql")
+        )
 
-        with patch('asyncio.create_subprocess_exec', AsyncMock(return_value=mock_process)), \
-             patch('letras.runners.base.PostgresUtils', MagicMock(return_value=mock_postgres_utils)) as mock_utils_class:
+        with patch(
+            "asyncio.create_subprocess_exec", AsyncMock(return_value=mock_process)
+        ), patch(
+            "letras.runners.base.PostgresUtils",
+            MagicMock(return_value=mock_postgres_utils),
+        ) as mock_utils_class:
             # Execute
             await runner.create_release(
-                lyrics_list=lyrics_list, 
-                output_dir=str(tmp_path), 
-                temp_dir=str(temp_dir)
+                lyrics_list=lyrics_list,
+                output_dir=str(tmp_path),
+                temp_dir=str(temp_dir),
             )
 
             # Verify PostgresUtils was created with correct config
             mock_utils_class.assert_called_once_with(db_config)
-            
+
             # Verify backup was created
             mock_postgres_utils.create_backup.assert_called_once_with(str(temp_dir))
 
@@ -143,7 +147,9 @@ class TestBaseRunner:
             notes_content = release_notes.read_text()
             assert "2 new songs" in notes_content, "Should mention number of songs"
             assert "2 artists" in notes_content, "Should mention number of artists"
-            assert "Test Artist 2" in notes_content, "Should mention highest viewed artist"
+            assert (
+                "Test Artist 2" in notes_content
+            ), "Should mention highest viewed artist"
 
             # Verify zip file
             zip_files = list(tmp_path.glob("*.zip"))

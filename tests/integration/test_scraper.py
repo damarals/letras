@@ -120,6 +120,7 @@ async def test_get_song_details(scraper, mock_session):
     assert "Verse 1" in result.content
     assert "Verse 2" in result.content
 
+
 @pytest.mark.asyncio
 async def test_rate_limiting(scraper, mock_session):
     mock_session.get = MagicMock(return_value=MockResponse("OK"))

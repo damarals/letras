@@ -1,21 +1,23 @@
 import asyncio
 import shutil
+import string
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from datetime import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from rich.console import Console
-from rich.progress import BarColumn, Progress, TextColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskID, TextColumn
 
 from letras.domain.entities.artist import Artist
 from letras.domain.entities.lyrics import Lyrics
 from letras.domain.entities.song import Song
 from letras.domain.services.lyrics_service import LyricsService
 from letras.infrastructure.database.connection import PostgresConnection
-from letras.infrastructure.database.utils import PostgresUtils
 from letras.infrastructure.database.repositories.postgres_repository import (
     PostgresRepository,
 )
+from letras.infrastructure.database.utils import PostgresUtils
 from letras.infrastructure.web.scraper import WebScraper
 
 
@@ -55,43 +57,67 @@ class BaseRunner(ABC):
         if self.scraper:
             await self.scraper.close()
 
+    def group_artists(self, artists: List[Artist]) -> Dict[str, List[Artist]]:
+        """Group artists by their first character"""
+        groups = defaultdict(list)
+
+        for artist in artists:
+            # Get first character of artist name
+            first_char = artist.name[0].upper()
+
+            # Group into: numbers, letters, or 'other'
+            if first_char.isdigit():
+                group_key = "#"
+            elif first_char in string.ascii_uppercase:
+                group_key = first_char
+            else:
+                group_key = "Other"
+
+            groups[group_key].append(artist)
+
+        return dict(sorted(groups.items()))
+
     @abstractmethod
     async def process_artists(self) -> List[Artist]:
         """Process artists based on runner strategy"""
         pass
 
     async def process_songs(self, artists: List[Artist]) -> List[Song]:
-        """Process songs from artists concurrently"""
+        """Process songs with clean progress display"""
         new_songs = []
 
         with Progress(
+            SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             console=self.console,
         ) as progress:
-            task = progress.add_task("[blue]Processing songs...", total=len(artists))
+            # Group artists
+            grouped_artists = self.group_artists(artists)
+            main_task = progress.add_task(
+                "[yellow]Processing songs...", total=len(grouped_artists)
+            )
 
-            async def process_artist_songs(artist: Artist):
-                try:
-                    songs = await self.service.process_songs(artist)
-                    if songs and self.verbose:
-                        self.console.print(
-                            f"Found {len(songs)} new songs from {artist.name}"
-                        )
-                    return songs
-                except Exception as e:
-                    self.console.print(
-                        f"[red]Error[/red] processing {artist.name}: {str(e)}"
-                    )
-                    return []
-                finally:
-                    progress.advance(task)
+            for group_key, group_artists in grouped_artists.items():
+                group_task = progress.add_task(
+                    f"[cyan]Songs from group {group_key}", total=len(group_artists)
+                )
 
-            tasks = [process_artist_songs(artist) for artist in artists]
-            results = await asyncio.gather(*tasks)
-            for songs in results:
-                new_songs.extend(songs)
+                songs_in_group = 0
+                for artist in group_artists:
+                    try:
+                        songs = await self.service.process_songs(artist)
+                        songs_in_group += len(songs)
+                        new_songs.extend(songs)
+                    except Exception as e:
+                        if self.verbose:
+                            progress.print(f"[red]Error in group {group_key}[/red]")
+                    finally:
+                        progress.advance(group_task)
+
+                progress.print(f"Group {group_key}: {songs_in_group} new songs found")
+                progress.advance(main_task)
 
         return new_songs
 

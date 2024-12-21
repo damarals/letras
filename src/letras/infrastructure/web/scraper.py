@@ -43,7 +43,7 @@ class WebScraper:
         async with self._rate_limiter:
             async with self._session.get(f"{self._base_url}{url}") as response:
                 response.raise_for_status()
-                return await response.text(encoding='utf-8', errors='ignore')
+                return await response.text(encoding="utf-8", errors="ignore")
 
     async def get_all_artists(self) -> List[Artist]:
         """Get all gospel artists"""
@@ -107,12 +107,12 @@ class WebScraper:
 
             if content_div := soup.find("div", class_="lyric-original"):
                 paragraphs = []
-                for p in content_div.find_all('p'):
+                for p in content_div.find_all("p"):
                     lines = [element for element in p.stripped_strings]
-                    paragraphs.append('\n'.join(lines))
-                content = '\n\n'.join(paragraphs)
+                    paragraphs.append("\n".join(lines))
+                content = "\n\n".join(paragraphs)
                 return ScrapeResult(content=content, views=views)
-                
+
             return None
         except Exception as e:
             self._logger.error(f"Error getting song details: {e}")

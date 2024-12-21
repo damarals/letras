@@ -144,21 +144,15 @@ async def test_lyrics_line_breaks(repository):
 
     # Test lyrics with different line break scenarios
     test_lyrics = (
-        "First line\n"
-        "Second line\n"
-        "\n"
-        "Fourth line after empty line\n"
-        "Last line"
+        "First line\n" "Second line\n" "\n" "Fourth line after empty line\n" "Last line"
     )
 
     # Add lyrics
-    lyrics = await repository.add_lyrics(
-        Lyrics(song_id=song.id, content=test_lyrics)
-    )
+    lyrics = await repository.add_lyrics(Lyrics(song_id=song.id, content=test_lyrics))
 
     # Get lyrics back
     found_lyrics = await repository.get_lyrics_by_song(song.id)
-    
+
     # Verify content is exactly the same, including line breaks
     assert found_lyrics.content == test_lyrics, (
         "Line breaks in lyrics were not preserved.\n"

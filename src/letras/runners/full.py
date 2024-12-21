@@ -1,4 +1,6 @@
-from typing import List
+from typing import Dict, List
+
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 from letras.domain.entities.artist import Artist
 from letras.domain.services.language_service import LanguageService
@@ -37,7 +39,7 @@ class FullRunner(BaseRunner):
         await self.create_release(lyrics, output_dir, temp_dir=f"{output_dir}/temp")
 
     async def process_artists(self) -> List[Artist]:
-        """Process all artists"""
+        """Process all artists with grouped progress display"""
         self.console.print("[blue]Starting full scrape...[/blue]")
 
         try:
@@ -45,18 +47,43 @@ class FullRunner(BaseRunner):
             if not web_artists:
                 return []
 
-            processed = []
-            for artist in web_artists:
-                try:
-                    processed_artist = await self.service.process_artist(artist)
-                    if processed_artist:
-                        processed.append(processed_artist)
-                        if self.verbose:
-                            self.console.print(f"[blue]Processed[/blue] {artist.name}")
-                except Exception as e:
-                    self.console.print(f"[red]Error[/red] with {artist.name}: {str(e)}")
+            # Group artists
+            grouped_artists = self.group_artists(web_artists)
+            processed_artists = []
 
-            return processed
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                BarColumn(),
+                TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+                console=self.console,
+            ) as progress:
+                main_task = progress.add_task(
+                    "[yellow]Processing all artists...", total=len(grouped_artists)
+                )
+
+                for group_key, artists in grouped_artists.items():
+                    group_task = progress.add_task(
+                        f"[cyan]Group {group_key}", total=len(artists)
+                    )
+
+                    for artist in artists:
+                        try:
+                            processed = await self.service.process_artist(artist)
+                            if processed:
+                                processed_artists.append(processed)
+                        except Exception as e:
+                            if self.verbose:
+                                progress.print(f"[red]Error in group {group_key}[/red]")
+                        finally:
+                            progress.advance(group_task)
+
+                    progress.print(
+                        f"Group {group_key}: {len(artists)} artists processed"
+                    )
+                    progress.advance(main_task)
+
+            return processed_artists
 
         except Exception as e:
             self.console.print("[red]Error[/red] getting artists:", str(e))
