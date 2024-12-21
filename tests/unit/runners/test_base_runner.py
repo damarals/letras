@@ -1,9 +1,7 @@
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, Mock
-
 import pytest
-
 from letras.domain.entities.artist import Artist
 from letras.domain.entities.lyrics import Lyrics
 from letras.domain.entities.song import Song
@@ -39,13 +37,12 @@ class TestBaseRunner:
     @pytest.fixture
     async def runner(self, mock_service, mock_scraper, mock_repository):
         """Create runner and patch its initialize method"""
-        runner = FullRunner(  # Usando FullRunner em vez de BaseRunner
-            db_config={},  # Config vazio pois não vamos usar
+        runner = FullRunner(
+            db_config={},
             base_url="http://test.com",
-            verbose=False,
+            verbose=False
         )
 
-        # Substituir atributos com mocks
         runner.service = mock_service
         runner.scraper = mock_scraper
         runner.repository = mock_repository
@@ -83,7 +80,7 @@ class TestBaseRunner:
     async def test_create_release(self, runner, tmp_path, mock_repository):
         # Setup dos diretórios
         temp_dir = tmp_path / "temp"
-        temp_dir.mkdir(parents=True, exist_ok=True)  # Cria diretório com parents
+        temp_dir.mkdir(parents=True, exist_ok=True)
 
         # Setup dos mocks para dois artistas diferentes
         mock_songs = {

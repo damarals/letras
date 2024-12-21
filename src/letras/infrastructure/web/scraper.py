@@ -106,8 +106,13 @@ class WebScraper:
                     views = int(views_text.text.replace(".", ""))
 
             if content_div := soup.find("div", class_="lyric-original"):
-                content = "\n".join(p.text for p in content_div.find_all("p"))
+                paragraphs = []
+                for p in content_div.find_all('p'):
+                    lines = [element for element in p.stripped_strings]
+                    paragraphs.append('\n'.join(lines))
+                content = '\n\n'.join(paragraphs)
                 return ScrapeResult(content=content, views=views)
+                
             return None
         except Exception as e:
             self._logger.error(f"Error getting song details: {e}")

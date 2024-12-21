@@ -130,3 +130,38 @@ async def test_bulk_operations(repository):
     # Verify all were created
     all_artists = await repository.get_all_artists()
     assert len(all_artists) == 10  # Should be exactly 10
+
+
+@pytest.mark.asyncio
+async def test_lyrics_line_breaks(repository):
+    # Create artist and song
+    artist = await repository.add_artist(
+        Artist(name="Test Artist", slug="test-artist", views=1000)
+    )
+    song = await repository.add_song(
+        Song(name="Test Song", slug="test-song", artist_id=artist.id, views=500)
+    )
+
+    # Test lyrics with different line break scenarios
+    test_lyrics = (
+        "First line\n"
+        "Second line\n"
+        "\n"
+        "Fourth line after empty line\n"
+        "Last line"
+    )
+
+    # Add lyrics
+    lyrics = await repository.add_lyrics(
+        Lyrics(song_id=song.id, content=test_lyrics)
+    )
+
+    # Get lyrics back
+    found_lyrics = await repository.get_lyrics_by_song(song.id)
+    
+    # Verify content is exactly the same, including line breaks
+    assert found_lyrics.content == test_lyrics, (
+        "Line breaks in lyrics were not preserved.\n"
+        f"Expected:\n{repr(test_lyrics)}\n"
+        f"Got:\n{repr(found_lyrics.content)}"
+    )
