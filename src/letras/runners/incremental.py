@@ -16,9 +16,26 @@ class IncrementalRunner(BaseRunner):
     """Incremental update of existing database"""
 
     async def initialize(self):
-        """Initialize resources for the runner."""
+        """Initialize resources and restore database if backup exists"""
         self.db = PostgresConnection(**self.db_config)
         await self.db.initialize()
+        
+        # Look for latest backup in the release directory
+        release_dir = Path(self.config.release_dir)
+        backup_files = list(release_dir.glob("*.sql"))
+        
+        if backup_files:
+            # Get most recent backup
+            latest_backup = max(backup_files, key=lambda x: x.stat().st_mtime)
+            
+            # Restore backup
+            postgres_utils = PostgresUtils(self.db_config)
+            await postgres_utils.restore_backup(str(latest_backup))
+            
+            if self.verbose:
+                self.console.print(f"[green]Restored database from backup: {latest_backup}[/green]")
+        
+        # Initialize remaining services
         self.repository = PostgresRepository(self.db)
         self.scraper = WebScraper(self.base_url)
         await self.scraper.initialize()

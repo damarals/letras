@@ -1,7 +1,9 @@
 import asyncio
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, Mock
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import pytest
+
 from letras.domain.entities.artist import Artist
 from letras.domain.entities.lyrics import Lyrics
 from letras.domain.entities.song import Song
@@ -9,6 +11,16 @@ from letras.runners.full import FullRunner
 
 
 class TestBaseRunner:
+    @pytest.fixture
+    def db_config(self):
+        return {
+            "host": "test-host",
+            "port": 5432,
+            "database": "test-db",
+            "user": "test-user",
+            "password": "test-pass",
+        }
+
     @pytest.fixture
     async def mock_repository(self):
         repo = MagicMock()
@@ -35,10 +47,9 @@ class TestBaseRunner:
         return scraper
 
     @pytest.fixture
-    async def runner(self, mock_service, mock_scraper, mock_repository):
-        """Create runner and patch its initialize method"""
+    async def runner(self, mock_service, mock_scraper, mock_repository, db_config):
         runner = FullRunner(
-            db_config={},
+            db_config=db_config,
             base_url="http://test.com",
             verbose=False
         )
@@ -77,7 +88,7 @@ class TestBaseRunner:
         assert mock_service.process_lyrics.await_count == 3
 
     @pytest.mark.asyncio
-    async def test_create_release(self, runner, tmp_path, mock_repository):
+    async def test_create_release(self, runner, tmp_path, mock_repository, db_config):
         # Setup dos diretórios
         temp_dir = tmp_path / "temp"
         temp_dir.mkdir(parents=True, exist_ok=True)
@@ -100,24 +111,43 @@ class TestBaseRunner:
             Lyrics(song_id=2, content="Test lyrics 2"),
         ]
 
-        # Execute
-        await runner.create_release(
-            lyrics_list=lyrics_list, output_dir=str(tmp_path), temp_dir=str(temp_dir)
-        )
+        # Mock subprocess for pg_dump
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.communicate = AsyncMock(return_value=(b"", b""))
+        
+        # Mock both PostgresUtils class and subprocess
+        mock_postgres_utils = MagicMock()
+        mock_postgres_utils.create_backup = AsyncMock(return_value=str(temp_dir / "backup.sql"))
 
-        # Verify files
-        release_notes = tmp_path / "RELEASE_NOTES.md"
-        assert release_notes.exists(), "Release notes file should exist"
+        with patch('asyncio.create_subprocess_exec', AsyncMock(return_value=mock_process)), \
+             patch('letras.runners.base.PostgresUtils', MagicMock(return_value=mock_postgres_utils)) as mock_utils_class:
+            # Execute
+            await runner.create_release(
+                lyrics_list=lyrics_list, 
+                output_dir=str(tmp_path), 
+                temp_dir=str(temp_dir)
+            )
 
-        # Verify release notes content
-        notes_content = release_notes.read_text()
-        assert "2 new songs" in notes_content, "Should mention number of songs"
-        assert "2 artists" in notes_content, "Should mention number of artists"
-        assert "Test Artist 2" in notes_content, "Should mention highest viewed artist"
+            # Verify PostgresUtils was created with correct config
+            mock_utils_class.assert_called_once_with(db_config)
+            
+            # Verify backup was created
+            mock_postgres_utils.create_backup.assert_called_once_with(str(temp_dir))
 
-        # Verify zip file
-        zip_files = list(tmp_path.glob("*.zip"))
-        assert len(zip_files) == 1, "Should create exactly one zip file"
+            # Verify files
+            release_notes = tmp_path / "RELEASE_NOTES.md"
+            assert release_notes.exists(), "Release notes file should exist"
+
+            # Verify release notes content
+            notes_content = release_notes.read_text()
+            assert "2 new songs" in notes_content, "Should mention number of songs"
+            assert "2 artists" in notes_content, "Should mention number of artists"
+            assert "Test Artist 2" in notes_content, "Should mention highest viewed artist"
+
+            # Verify zip file
+            zip_files = list(tmp_path.glob("*.zip"))
+            assert len(zip_files) == 1, "Should create exactly one zip file"
 
     @pytest.mark.asyncio
     async def test_error_handling(self, runner, mock_scraper):

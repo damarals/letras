@@ -12,6 +12,7 @@ from letras.domain.entities.lyrics import Lyrics
 from letras.domain.entities.song import Song
 from letras.domain.services.lyrics_service import LyricsService
 from letras.infrastructure.database.connection import PostgresConnection
+from letras.infrastructure.database.utils import PostgresUtils
 from letras.infrastructure.database.repositories.postgres_repository import (
     PostgresRepository,
 )
@@ -147,7 +148,11 @@ class BaseRunner(ABC):
                 with open(f"{temp_dir}/{filename}", "w") as f:
                     f.write(f"{song.name}\n{artist.name}\n\n{lyrics.content}")
 
-            # Create zip
+            # Create database backup
+            postgres_utils = PostgresUtils(self.db_config)
+            backup_file = await postgres_utils.create_backup(temp_dir)
+
+            # Create zip including both lyrics and database backup
             timestamp = datetime.now().strftime("%Y%m%d")
             shutil.make_archive(f"{output_dir}/letras-{timestamp}", "zip", temp_dir)
 

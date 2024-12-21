@@ -40,16 +40,20 @@ jobs:
         run: |
           docker compose exec -T app poetry run python -m letras full
 
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%d%m%Y')" >> $GITHUB_OUTPUT
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           files: |
             data/*.zip
-            data/RELEASE_NOTES.md
-          name: Release ${{ github.run_number }} (Full)
+            data/*.sql
           body_path: data/RELEASE_NOTES.md
-          tag_name: v${{ github.run_number }}
+          name: Letras ${{ steps.date.outputs.date }}
+          tag_name: v${{ steps.date.outputs.date }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

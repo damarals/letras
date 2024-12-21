@@ -13,9 +13,14 @@ ENV PATH=/root/.local/bin:/home/$USERNAME/.local/bin:$PATH
 RUN python3 -m pip install pipx \
     && python3 -m pipx ensurepath --force
 
-# Essentials
+# Add PostgreSQL repository and install PostgreSQL 15 client
 RUN apt-get update \
-    && apt-get install build-essential -y
+    && apt-get install -y curl gnupg2 lsb-release \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/postgresql-keyring.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/postgresql.list \
+    && apt-get update \
+    && apt-get install -y build-essential postgresql-client-15 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Limpeza final
 RUN apt-get clean \
