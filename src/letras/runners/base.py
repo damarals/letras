@@ -121,39 +121,60 @@ class BaseRunner(ABC):
 
         return new_songs
 
-    async def process_lyrics(
-        self, artists: List[Artist], songs: List[Song]
-    ) -> List[Lyrics]:
-        """Process lyrics concurrently"""
+    async def process_lyrics(self, artists: List[Artist], songs: List[Song]) -> List[Lyrics]:
+        """Process lyrics with clean progress display"""
         lyrics_list = []
         artist_map = {artist.id: artist for artist in artists}
 
         with Progress(
+            SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
-            console=self.console,
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            console=self.console
         ) as progress:
-            task = progress.add_task("[blue]Processing lyrics...", total=len(songs))
+            # Create main progress bar
+            main_task = progress.add_task(
+                "[yellow]Processing lyrics...",
+                total=len(songs)
+            )
 
-            async def process_song_lyrics(song: Song):
-                try:
-                    artist = artist_map[song.artist_id]
-                    lyrics = await self.service.process_lyrics(artist, song)
-                    if lyrics and self.verbose:
-                        self.console.print(f"Added lyrics for {song.name}")
-                    return lyrics
-                except Exception as e:
-                    self.console.print(
-                        f"[red]Error[/red] processing {song.name}: {str(e)}"
-                    )
-                    return None
-                finally:
-                    progress.advance(task)
+            # Group songs by artist's first letter for cleaner progress display
+            grouped_songs = defaultdict(list)
+            for song in songs:
+                artist = artist_map[song.artist_id]
+                first_char = artist.name[0].upper()
+                if first_char.isdigit():
+                    group_key = '#'
+                elif first_char in string.ascii_uppercase:
+                    group_key = first_char
+                else:
+                    group_key = 'Other'
+                grouped_songs[group_key].append(song)
 
-            tasks = [process_song_lyrics(song) for song in songs]
-            results = await asyncio.gather(*tasks)
-            lyrics_list = [l for l in results if l]
+            # Process each group
+            for group_key, group_songs in grouped_songs.items():
+                group_task = progress.add_task(
+                    f"[cyan]Group {group_key}",
+                    total=len(group_songs)
+                )
+                
+                lyrics_in_group = 0
+                for song in group_songs:
+                    try:
+                        artist = artist_map[song.artist_id]
+                        lyrics = await self.service.process_lyrics(artist, song)
+                        if lyrics:
+                            lyrics_list.append(lyrics)
+                            lyrics_in_group += 1
+                    except Exception as e:
+                        if self.verbose:
+                            progress.print(f"[red]Error processing lyrics in group {group_key}[/red]")
+                    finally:
+                        progress.advance(group_task)
+                        progress.advance(main_task)
+                        
+                progress.print(f"Group {group_key}: {lyrics_in_group} lyrics processed")
 
         return lyrics_list
 
