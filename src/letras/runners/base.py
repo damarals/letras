@@ -197,7 +197,7 @@ class BaseRunner(ABC):
 
             # Create database backup
             postgres_utils = PostgresUtils(self.db_config)
-            backup_file = await postgres_utils.create_backup(temp_dir)
+            backup_file = await postgres_utils.create_backup(output_dir)
 
             # Create zip including both lyrics and database backup
             timestamp = datetime.now().strftime("%Y%m%d")

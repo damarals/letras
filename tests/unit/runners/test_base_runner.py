@@ -117,7 +117,7 @@ class TestBaseRunner:
         # Mock both PostgresUtils class and subprocess
         mock_postgres_utils = MagicMock()
         mock_postgres_utils.create_backup = AsyncMock(
-            return_value=str(temp_dir / "backup.sql")
+            return_value=str(tmp_path / "backup.sql")
         )
 
         with patch(
@@ -137,7 +137,7 @@ class TestBaseRunner:
             mock_utils_class.assert_called_once_with(db_config)
 
             # Verify backup was created
-            mock_postgres_utils.create_backup.assert_called_once_with(str(temp_dir))
+            mock_postgres_utils.create_backup.assert_called_once_with(str(tmp_path))
 
             # Verify files
             release_notes = tmp_path / "RELEASE_NOTES.md"
