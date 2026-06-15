@@ -1,5 +1,6 @@
 """Command-line surface. Thin adapter over the pipeline and exporter."""
 
+import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -51,18 +52,22 @@ def run(
     settings = Settings()
     fetcher = _build_fetcher(settings)
     store = CorpusStore(corpus)
-    try:
-        scrape(
-            fetcher,
-            store,
-            workers=settings.max_workers,
-            incremental=incremental,
-            only_slug=artist,
-            max_songs=max_songs,
-        )
-    finally:
-        fetcher.close()
-        store.close()
+
+    async def _scrape() -> None:
+        try:
+            await scrape(
+                fetcher,
+                store,
+                workers=settings.max_workers,
+                incremental=incremental,
+                only_slug=artist,
+                max_songs=max_songs,
+            )
+        finally:
+            await fetcher.aclose()
+            store.close()
+
+    asyncio.run(_scrape())
 
 
 @app.command()
