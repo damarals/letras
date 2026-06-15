@@ -6,7 +6,12 @@ this skeleton scrapes (optionally a single artist) and stores raw.
 
 from letras.domain.language import detect_language
 from letras.source.fetcher import Fetcher
-from letras.source.parser import parse_artist_index, parse_artist_songs, parse_song
+from letras.source.parser import (
+    ParseError,
+    parse_artist_index,
+    parse_artist_songs,
+    parse_song,
+)
 from letras.store.corpus_store import CorpusStore
 
 
@@ -30,9 +35,13 @@ def run(
             songs = [song for song in songs if song.slug not in known]
         if max_songs is not None:
             songs = songs[:max_songs]
-        for song in songs:
+        pages = fetcher.song_pages(artist.slug, [song.slug for song in songs])
+        for song, html in zip(songs, pages, strict=True):
             song_id = store.upsert_song(song, artist_id)
-            content = parse_song(fetcher.song_page(artist.slug, song.slug))
+            try:
+                content = parse_song(html)
+            except ParseError:
+                continue  # skip a single malformed page; don't abort the run
             store.set_lyrics(
                 song_id,
                 content,

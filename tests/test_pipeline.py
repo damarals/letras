@@ -68,3 +68,31 @@ def test_incremental_run_skips_songs_already_in_corpus() -> None:
 
     run(fetcher, store, only_slug=slug, incremental=True)  # all known -> none
     assert len(song_fetches) == 10
+
+
+def test_run_skips_song_whose_lyrics_fail_to_parse() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    good_song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+    broken_song = "<html><body><h1>X</h1><p>no lyrics container</p></body></html>"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:
+            return httpx.Response(200, text=artist)
+        if path.endswith("/44039/"):  # one song page is malformed
+            return httpx.Response(200, text=broken_song)
+        return httpx.Response(200, text=good_song)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    store = CorpusStore(":memory:")
+
+    run(Fetcher(client=client), store, only_slug="1-igreja-batista-em-trindade")
+
+    rows = list(store.iter_export())
+    assert len(rows) == 9  # 10 songs, the malformed one is skipped
+    assert all(song.slug != "44039" for _, song, _ in rows)

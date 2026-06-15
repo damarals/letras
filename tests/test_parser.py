@@ -1,7 +1,14 @@
 from pathlib import Path
 
+import pytest
+
 from letras.domain.entities import Artist, Song
-from letras.source.parser import parse_artist_index, parse_artist_songs, parse_song
+from letras.source.parser import (
+    ParseError,
+    parse_artist_index,
+    parse_artist_songs,
+    parse_song,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -51,3 +58,13 @@ def test_parse_artist_index_extracts_name_and_slug() -> None:
         Artist(name="10,000 Fathers & Mothers", slug="10-000-fathers-e-mothers")
         in artists
     )
+
+
+def test_parse_song_raises_on_missing_lyrics_element() -> None:
+    with pytest.raises(ParseError):
+        parse_song("<html><body><h1>X</h1><p>no lyrics container</p></body></html>")
+
+
+def test_parse_artist_index_raises_when_no_artists_found() -> None:
+    with pytest.raises(ParseError):
+        parse_artist_index("<html><body><p>no artist list here</p></body></html>")

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import typer
 
+from letras.config import Settings
 from letras.domain.policy import load_policy
 from letras.pipeline import run as scrape
 from letras.release.exporter import export_release
@@ -24,7 +25,13 @@ def run(
     max_songs: int | None = typer.Option(None, help="Cap songs per artist (debug)"),
 ) -> None:
     """Scrape the source into the corpus store."""
-    fetcher = Fetcher()
+    settings = Settings()
+    fetcher = Fetcher(
+        settings.base_url,
+        delay=settings.delay,
+        max_attempts=settings.max_attempts,
+        max_workers=settings.max_workers,
+    )
     store = CorpusStore(corpus)
     try:
         scrape(

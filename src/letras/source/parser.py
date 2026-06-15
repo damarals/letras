@@ -6,6 +6,10 @@ from lxml.etree import _Element
 from letras.domain.entities import Artist, Song
 
 
+class ParseError(Exception):
+    """Raised when the page structure does not match expectations (site drift)."""
+
+
 def _collapsed_text(element: _Element) -> str:
     text = "".join(t for t in element.itertext() if isinstance(t, str))
     return " ".join(text.split())
@@ -18,7 +22,10 @@ def parse_song(html: str) -> str:
     line break; stanzas are joined by a blank line.
     """
     tree = lxml_html.fromstring(html)
-    container = tree.cssselect("div.lyric-original")[0]
+    containers = tree.cssselect("div.lyric-original")
+    if not containers:
+        raise ParseError("no div.lyric-original element found")
+    container = containers[0]
     stanzas = []
     for paragraph in container.cssselect("p"):
         for br in paragraph.iter("br"):
@@ -47,4 +54,6 @@ def parse_artist_index(html: str) -> list[Artist]:
     for anchor in tree.cssselect("ul.cnt-list a"):
         href = anchor.get("href") or ""
         artists.append(Artist(name=_collapsed_text(anchor), slug=href.strip("/")))
+    if not artists:
+        raise ParseError("no artists found in index")
     return artists
