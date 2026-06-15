@@ -7,7 +7,7 @@ def test_settings_defaults() -> None:
     settings = Settings()
     assert settings.base_url == "https://www.letras.mus.br"
     assert settings.delay == 0.0
-    assert settings.max_workers == 16
+    assert settings.max_workers == 32
     assert settings.max_attempts == 3
 
 

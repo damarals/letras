@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     )
 
     base_url: str = "https://www.letras.mus.br"
-    max_workers: int = 16
+    # Sized so the rate limiter (below), not the worker count, governs throughput.
+    max_workers: int = 32
     max_attempts: int = 3
 
     # Transport: HTTP/2 multiplexing + a warm keepalive pool means many requests
