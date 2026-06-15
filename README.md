@@ -18,7 +18,7 @@
 Baixe na última [release](https://github.com/damarals/letras/releases/latest):
 
 <div align="center">
-  <a href="https://github.com/damarals/letras/releases/latest/download/lyrics.zip"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-Letras%20(.zip)-F25278?style=for-the-badge&logo=download&logoColor=white" alt="Letras (.zip)" /></a>
+  <a href="https://github.com/damarals/letras/releases/latest/download/letras.zip"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-Letras%20(.zip)-F25278?style=for-the-badge&logo=download&logoColor=white" alt="Letras (.zip)" /></a>
   <a href="https://github.com/damarals/letras/releases/latest/download/corpus.db"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-SQLite-F25278?style=for-the-badge&logo=download&logoColor=white" alt="SQLite" /></a>
 </div>
 
@@ -30,7 +30,7 @@ Baixe na última [release](https://github.com/damarals/letras/releases/latest):
   SELECT * FROM lyrics WHERE admitted = 1;
   ```
 
-- **Textos** (`lyrics.zip`) — um arquivo `<Artista> - <Música>.txt` por música admitida.
+- **Textos** (`letras.zip`) — um arquivo `<Artista> - <Música>.txt` por música admitida.
 - **RELEASE_NOTES.md** — resumo da release (quantas músicas, de quantos artistas).
 
 ## Curadoria
@@ -45,7 +45,7 @@ Toolkit em Python (com [uv](https://docs.astral.sh/uv/)). Sem banco de dados, se
 uv sync
 uv run letras run --incremental   # semanal: coleta só músicas novas
 uv run letras run                 # reconciliação completa (recoleta tudo)
-uv run letras export --out dist   # gera corpus.db + lyrics.zip + notas
+uv run letras export --out dist   # gera corpus.db + letras.zip + notas
 ```
 
 Configurável por variáveis `LETRAS_` (ex.: `LETRAS_DELAY`, `LETRAS_MAX_WORKERS`).

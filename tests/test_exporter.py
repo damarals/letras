@@ -22,7 +22,7 @@ def test_export_release_includes_only_admitted_songs(tmp_path: Path) -> None:
     export_release(store, db_path, out, date="20260615", policy=load_policy())
 
     assert (out / "corpus.db").exists()
-    with zipfile.ZipFile(out / "lyrics.zip") as archive:
+    with zipfile.ZipFile(out / "letras.zip") as archive:
         names = archive.namelist()
     assert "Aline Barros - Consagração.txt" in names
     assert "Aline Barros - Short.txt" not in names

@@ -35,7 +35,7 @@ def export_release(
 
     rows = list(store.iter_admitted())
     with zipfile.ZipFile(
-        out_dir / "lyrics.zip", "w", zipfile.ZIP_DEFLATED
+        out_dir / "letras.zip", "w", zipfile.ZIP_DEFLATED
     ) as archive:
         for artist, song, content in rows:
             filename = f"{artist.name} - {song.name}.txt".replace("/", "_")

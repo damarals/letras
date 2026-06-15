@@ -39,6 +39,6 @@ jobs:
         run: |
           date=$(date +'%Y%m%d')
           gh release create "v${date}.${{ github.run_number }}" \
-            dist/corpus.db dist/lyrics.zip dist/RELEASE_NOTES.md \
+            dist/corpus.db dist/letras.zip dist/RELEASE_NOTES.md \
             --title "Letras ${date}" \
             --notes-file dist/RELEASE_NOTES.md
