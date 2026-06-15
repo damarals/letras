@@ -16,6 +16,9 @@ app = typer.Typer(help="Letras — gospel lyrics corpus scraper", no_args_is_hel
 
 @app.command()
 def run(
+    incremental: bool = typer.Option(
+        False, help="Scrape only songs not already in the corpus"
+    ),
     artist: str | None = typer.Option(None, help="Scrape only this artist slug"),
     corpus: Path = typer.Option(Path("corpus.db"), help="Corpus SQLite file"),
     max_songs: int | None = typer.Option(None, help="Cap songs per artist (debug)"),
@@ -24,7 +27,13 @@ def run(
     fetcher = Fetcher()
     store = CorpusStore(corpus)
     try:
-        scrape(fetcher, store, only_slug=artist, max_songs=max_songs)
+        scrape(
+            fetcher,
+            store,
+            incremental=incremental,
+            only_slug=artist,
+            max_songs=max_songs,
+        )
     finally:
         fetcher.close()
         store.close()

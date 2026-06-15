@@ -39,3 +39,32 @@ def test_run_populates_store_for_one_artist() -> None:
     assert artist.name == "1° Igreja Batista Em Trindade"
     assert content.startswith("Ao Rei dos reis")
     assert {song.name for _, song, _ in rows} >= {"Consagração", "Jeová Jireh"}
+
+
+def test_incremental_run_skips_songs_already_in_corpus() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+    song_fetches: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:
+            return httpx.Response(200, text=artist)
+        song_fetches.append(path)
+        return httpx.Response(200, text=song)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    fetcher = Fetcher(client=client)
+    store = CorpusStore(":memory:")
+    slug = "1-igreja-batista-em-trindade"
+
+    run(fetcher, store, only_slug=slug)  # full: scrapes all 10 songs
+    assert len(song_fetches) == 10
+
+    run(fetcher, store, only_slug=slug, incremental=True)  # all known -> none
+    assert len(song_fetches) == 10

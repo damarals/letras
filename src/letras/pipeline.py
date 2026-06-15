@@ -14,6 +14,7 @@ def run(
     fetcher: Fetcher,
     store: CorpusStore,
     *,
+    incremental: bool = False,
     only_slug: str | None = None,
     max_songs: int | None = None,
 ) -> None:
@@ -24,6 +25,9 @@ def run(
     for artist in artists:
         artist_id = store.upsert_artist(artist)
         songs = parse_artist_songs(fetcher.artist_page(artist.slug))
+        if incremental:
+            known = store.known_song_slugs(artist_id)
+            songs = [song for song in songs if song.slug not in known]
         if max_songs is not None:
             songs = songs[:max_songs]
         for song in songs:
