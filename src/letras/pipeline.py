@@ -54,7 +54,10 @@ async def run(
                 html = await fetcher.artist_page(artist.slug)
             except httpx.HTTPError:
                 return artist, []  # dead/unreachable artist page -> skip it
-        songs = parse_artist_songs(html)
+        try:
+            songs = parse_artist_songs(html)
+        except ParseError:
+            return artist, []  # unparseable artist page -> skip it
         if incremental:
             songs = [s for s in songs if s.slug not in known[artist.slug]]
         if max_songs is not None:

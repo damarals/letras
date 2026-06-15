@@ -68,3 +68,19 @@ def test_parse_song_raises_on_missing_lyrics_element() -> None:
 def test_parse_artist_index_raises_when_no_artists_found() -> None:
     with pytest.raises(ParseError):
         parse_artist_index("<html><body><p>no artist list here</p></body></html>")
+
+
+def test_parse_song_strips_control_characters() -> None:
+    # Some live song pages carry a stray control byte in the lyric. It must not
+    # crash the parse (libxml2 rejects control chars in text nodes) and must not
+    # leak into the corpus; the lyric is salvaged.
+    html = '<div class="lyric-original"><p>Aleluia<br>Glória\x07\x00</p></div>'
+
+    assert parse_song(html) == "Aleluia\nGlória"
+
+
+def test_parse_song_raises_parse_error_on_empty_html() -> None:
+    # An empty/blank body makes lxml raise its own ParserError; the parser must
+    # normalize that to ParseError so the pipeline can skip the page.
+    with pytest.raises(ParseError):
+        parse_song("")

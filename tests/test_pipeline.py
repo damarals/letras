@@ -154,6 +154,33 @@ async def test_run_skips_artist_whose_page_errors() -> None:
     assert len(list(store.iter_export())) == 110
 
 
+async def test_run_skips_artist_whose_page_is_malformed() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+    dead = "1-igreja-batista-em-trindade"  # 200 OK but an empty/unparseable body
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:  # artist page
+            if path.strip("/") == dead:
+                return httpx.Response(200, text="")  # unparseable -> ParseError
+            return httpx.Response(200, text=artist)
+        return httpx.Response(200, text=song)
+
+    client = httpx.AsyncClient(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    store = CorpusStore(":memory:")
+
+    await run(Fetcher(client=client), store)  # must not abort on the bad page
+
+    # 12 index artists, 1 unparseable (0 songs) + 11 with 10 songs each
+    assert len(list(store.iter_export())) == 110
+
+
 async def test_run_skips_song_whose_page_errors() -> None:
     index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
     artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
