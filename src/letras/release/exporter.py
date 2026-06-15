@@ -34,9 +34,7 @@ def export_release(
     shutil.copyfile(db_path, out_dir / "corpus.db")
 
     rows = list(store.iter_admitted())
-    with zipfile.ZipFile(
-        out_dir / "letras.zip", "w", zipfile.ZIP_DEFLATED
-    ) as archive:
+    with zipfile.ZipFile(out_dir / "letras.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for artist, song, content in rows:
             filename = f"{artist.name} - {song.name}.txt".replace("/", "_")
             archive.writestr(filename, f"{song.name}\n{artist.name}\n\n{content}")

@@ -52,7 +52,8 @@ class CorpusStore:
     def upsert_song(self, song: Song, artist_id: int) -> int:
         cur = self._conn.execute(
             "INSERT INTO songs (name, slug, artist_id) VALUES (?, ?, ?) "
-            "ON CONFLICT(artist_id, slug) DO UPDATE SET name = excluded.name RETURNING id",
+            "ON CONFLICT(artist_id, slug) DO UPDATE SET name = excluded.name "
+            "RETURNING id",
             (song.name, song.slug, artist_id),
         )
         row = cur.fetchone()

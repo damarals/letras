@@ -6,7 +6,7 @@ authors = [{ name = "Daniel Amaral", email = "silva.daniel86@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "httpx>=0.27",
+    "httpx[brotli,http2]>=0.27",
     "lxml>=5.2",
     "cssselect>=1.2",
     "lingua-language-detector>=2.0",
@@ -44,6 +44,11 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# typer expresses option defaults as `typer.Option(...)` calls in signatures;
+# B008 (no function calls in argument defaults) is a false positive there.
+"src/letras/cli.py" = ["B008"]
 
 [tool.mypy]
 python_version = "3.12"
