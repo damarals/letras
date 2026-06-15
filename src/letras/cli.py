@@ -30,13 +30,13 @@ def run(
         settings.base_url,
         delay=settings.delay,
         max_attempts=settings.max_attempts,
-        max_workers=settings.max_workers,
     )
     store = CorpusStore(corpus)
     try:
         scrape(
             fetcher,
             store,
+            workers=settings.max_workers,
             incremental=incremental,
             only_slug=artist,
             max_songs=max_songs,

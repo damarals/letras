@@ -1,3 +1,5 @@
+import threading
+import time
 from pathlib import Path
 
 import httpx
@@ -96,3 +98,34 @@ def test_run_skips_song_whose_lyrics_fail_to_parse() -> None:
     rows = list(store.iter_export())
     assert len(rows) == 9  # 10 songs, the malformed one is skipped
     assert all(song.slug != "44039" for _, song, _ in rows)
+
+
+def test_run_fetches_artists_concurrently() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+    lock = threading.Lock()
+    state = {"in_flight": 0, "max": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:  # artist page
+            with lock:
+                state["in_flight"] += 1
+                state["max"] = max(state["max"], state["in_flight"])
+            time.sleep(0.03)
+            with lock:
+                state["in_flight"] -= 1
+            return httpx.Response(200, text=artist)
+        return httpx.Response(200, text=song)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    store = CorpusStore(":memory:")
+
+    run(Fetcher(client=client), store, workers=4)
+
+    assert state["max"] > 1  # multiple artist pages fetched at once
