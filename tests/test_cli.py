@@ -73,8 +73,8 @@ def test_export_command_writes_release(tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     assert (out / "corpus.db").exists()
-    zips = list(out.glob("lyrics-*.zip"))
-    assert zips
-    with zipfile.ZipFile(zips[0]) as archive:
+    zip_path = out / "lyrics.zip"
+    assert zip_path.exists()
+    with zipfile.ZipFile(zip_path) as archive:
         assert "Aline Barros - Consagração.txt" in archive.namelist()
     assert (out / "RELEASE_NOTES.md").exists()
