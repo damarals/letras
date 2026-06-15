@@ -129,3 +129,57 @@ def test_run_fetches_artists_concurrently() -> None:
     run(Fetcher(client=client), store, workers=4)
 
     assert state["max"] > 1  # multiple artist pages fetched at once
+
+
+def test_run_skips_artist_whose_page_errors() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+    dead = "1-igreja-batista-em-trindade"  # an index slug whose page 404s
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:  # artist page
+            if path.strip("/") == dead:
+                return httpx.Response(404)
+            return httpx.Response(200, text=artist)
+        return httpx.Response(200, text=song)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    store = CorpusStore(":memory:")
+
+    run(Fetcher(client=client), store)  # full run must not abort on the 404
+
+    # 12 index artists, 1 dead (0 songs) + 11 with 10 songs each
+    assert len(list(store.iter_export())) == 110
+
+
+def test_run_skips_song_whose_page_errors() -> None:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:
+            return httpx.Response(200, text=artist)
+        if path.endswith("/44039/"):
+            return httpx.Response(404)  # one dead song page
+        return httpx.Response(200, text=song)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    store = CorpusStore(":memory:")
+
+    run(Fetcher(client=client), store, only_slug="1-igreja-batista-em-trindade")
+
+    rows = list(store.iter_export())
+    assert len(rows) == 9  # 10 songs, the dead one skipped
+    assert all(s.slug != "44039" for _, s, _ in rows)
