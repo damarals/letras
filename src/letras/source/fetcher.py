@@ -24,7 +24,7 @@ import time
 import httpx
 from tenacity import (
     Retrying,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
@@ -42,6 +42,16 @@ _INDEX_PATH = "/estilos/gospelreligioso/todosartistas.html"
 # We honor these explicitly (Retry-After + AIMD backoff) instead of treating
 # them as generic transient errors.
 _THROTTLE_CODES = frozenset({429, 503})
+# Transient statuses worth retrying. Permanent 4xx (404, 403, 410, …) fail fast.
+_RETRY_CODES = frozenset({429, 500, 502, 503, 504})
+
+
+def _should_retry(exc: BaseException) -> bool:
+    if isinstance(exc, httpx.TransportError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code in _RETRY_CODES
+    return False
 
 
 def _parse_retry_after(value: str | None) -> float | None:
@@ -91,9 +101,7 @@ class Fetcher:
         self._retrying = Retrying(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=0.1, max=2),
-            retry=retry_if_exception_type(
-                (httpx.HTTPStatusError, httpx.TransportError)
-            ),
+            retry=retry_if_exception(_should_retry),
             reraise=True,
         )
 

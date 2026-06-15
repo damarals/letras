@@ -1,4 +1,5 @@
 import httpx
+import pytest
 
 from letras.source.fetcher import Fetcher, _parse_retry_after
 from letras.source.rate_limiter import RateLimiter
@@ -183,3 +184,20 @@ def test_fetcher_request_carries_compression_header() -> None:
     fetcher.artist_index()
     assert "br" in seen_headers["accept-encoding"]
     assert "gzip" in seen_headers["accept-encoding"]
+
+
+def test_fetcher_does_not_retry_4xx() -> None:
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        return httpx.Response(404)
+
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    fetcher = Fetcher(client=client)
+
+    with pytest.raises(httpx.HTTPStatusError):
+        fetcher.artist_index()
+    assert calls["n"] == 1  # 404 is permanent — not retried

@@ -7,6 +7,8 @@ Full-vs-incremental is a selection predicate, not a separate runner.
 
 from concurrent.futures import ThreadPoolExecutor
 
+import httpx
+
 from letras.domain.entities import Artist, Song
 from letras.domain.language import detect_language
 from letras.source.fetcher import Fetcher
@@ -43,7 +45,11 @@ def run(
 
     # Phase 1 (concurrent): fetch + parse each artist page into a flat work list.
     def list_songs(artist: Artist) -> tuple[Artist, list[Song]]:
-        songs = parse_artist_songs(fetcher.artist_page(artist.slug))
+        try:
+            html = fetcher.artist_page(artist.slug)
+        except httpx.HTTPError:
+            return artist, []  # dead/unreachable artist page -> skip it
+        songs = parse_artist_songs(html)
         if incremental:
             songs = [s for s in songs if s.slug not in known[artist.slug]]
         if max_songs is not None:
@@ -60,8 +66,8 @@ def run(
         artist, song = item
         try:
             content = parse_song(fetcher.song_page(artist.slug, song.slug))
-        except ParseError:
-            return None  # one malformed page never aborts the run
+        except (httpx.HTTPError, ParseError):
+            return None  # a dead or malformed page never aborts the run
         return artist, song, content, detect_language(content)
 
     with ThreadPoolExecutor(max_workers=workers) as pool:
