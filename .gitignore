@@ -47,5 +47,9 @@ data/
 *.db
 .playwright-mcp/
 
+# Internal docs (kept local, not tracked)
+CONTEXT.md
+docs/
+
 # Misc
 *repo-to-text*

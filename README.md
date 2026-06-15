@@ -48,7 +48,7 @@ uv run letras run                 # reconciliação completa (recoleta tudo)
 uv run letras export --out dist   # gera corpus.db + lyrics.zip + notas
 ```
 
-Configurável por variáveis `LETRAS_` (ex.: `LETRAS_DELAY`, `LETRAS_MAX_WORKERS`). Arquitetura e decisões em [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`CONTEXT.md`](CONTEXT.md) e [`docs/adr/`](docs/adr/).
+Configurável por variáveis `LETRAS_` (ex.: `LETRAS_DELAY`, `LETRAS_MAX_WORKERS`).
 
 ## Atualizações automáticas
 
