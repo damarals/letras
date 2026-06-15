@@ -1,0 +1,79 @@
+# Corpus admission policy — see CONTEXT.md (Admission, Gospel) and ADR-0002.
+# Restricts the corpus to Portuguese protestant/evangelical gospel.
+language: pt
+min_length: 100
+max_length: 4000
+
+# Artists excluded by name: Catholic clergy/places, non-protestant groups,
+# and Afro-Brazilian / spiritist religions.
+artist_excludes:
+  - Padre
+  - Frei
+  - Irmã
+  - Católico
+  - Católica
+  - Ministério Católico
+  - Santuário
+  - Diocese
+  - Sacerdote
+  - Paróquia
+  - Mosteiro
+  - Testemunhas de Jeová
+  - Umbanda
+  - Oxum
+  - Axé
+  - Candomblé
+  - Ogum
+  - Espiritismo
+  - Espírita
+  - Kardecista
+  - Orixá
+  - Terreiro
+  - Oxóssi
+  - Iansã
+  - Xamã
+
+# Song titles excluded: Catholic devotions and non-Christian terms.
+title_excludes:
+  - Santa Maria
+  - Sacramento
+  - Ave Maria
+  - Terço
+  - Nossa Senhora
+  - Santo Anjo
+  - São Miguel
+  - São Gabriel
+  - São Rafael
+  - Santíssimo
+  - Eucaristia
+  - Divino Pai Eterno
+  - Sagrado Coração
+  - Paróquia
+  - Missa
+  - Novena
+  - Santo Rosário
+  - Ladainha
+  - Exu
+  - Axé
+  - Orixá
+  - Oxum
+  - Umbanda
+  - Candomblé
+  - Macumba
+  - Pai de Santo
+  - Mãe de Santo
+  - Kardec
+  - Espiritismo
+  - Iemanjá
+
+# Lyric content terms indicating non-gospel material.
+content_excludes:
+  - macumba
+  - terreiro
+  - espiritismo
+  - kardec
+  - santo padre
+  - santa madre
+  - ave maria
+  - pai nosso
+  - rosário

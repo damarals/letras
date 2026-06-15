@@ -1,23 +1,39 @@
-"""Build a Release from the corpus: the .db, a per-song .txt ZIP, and notes.
-
-For now everything in the store is exported; Admission filtering arrives in a
-later slice (it will export only `admitted` rows).
-"""
+"""Build a Release from the corpus: stamp Admission, then emit the .db, a
+per-song .txt ZIP of admitted songs, and notes (ADR-0002)."""
 
 import shutil
 import zipfile
 from collections import Counter
 from pathlib import Path
 
+from letras.domain.admission import admit
 from letras.domain.entities import Artist, Song
+from letras.domain.policy import AdmissionPolicy
 from letras.store.corpus_store import CorpusStore
 
 
-def export_release(store: CorpusStore, db_path: Path, out_dir: Path, date: str) -> None:
+def export_release(
+    store: CorpusStore,
+    db_path: Path,
+    out_dir: Path,
+    date: str,
+    policy: AdmissionPolicy,
+) -> None:
+    for row in store.iter_for_admission():
+        song_id, artist_name, song_name, content, language = row
+        verdict = admit(
+            artist_name=artist_name,
+            song_name=song_name,
+            content=content,
+            language=language,
+            policy=policy,
+        )
+        store.set_admitted(song_id, verdict.admitted)
+
     out_dir.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(db_path, out_dir / "corpus.db")
 
-    rows = list(store.iter_export())
+    rows = list(store.iter_admitted())
     with zipfile.ZipFile(
         out_dir / f"lyrics-{date}.zip", "w", zipfile.ZIP_DEFLATED
     ) as archive:

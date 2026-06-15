@@ -1,3 +1,4 @@
+import zipfile
 from pathlib import Path
 
 import httpx
@@ -56,7 +57,8 @@ def test_export_command_writes_release(tmp_path: Path) -> None:
     store = CorpusStore(db)
     artist_id = store.upsert_artist(Artist(name="Aline Barros", slug="aline-barros"))
     song_id = store.upsert_song(Song(name="Consagração", slug="44039"), artist_id)
-    store.set_lyrics(song_id, "linha um", "pt", 8)
+    content = "Louvarei ao Senhor de todo o meu coração e exaltarei o Teu nome " * 4
+    store.set_lyrics(song_id, content, "pt", len(content))
     store.close()
     out = tmp_path / "dist"
 
@@ -64,5 +66,8 @@ def test_export_command_writes_release(tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     assert (out / "corpus.db").exists()
-    assert list(out.glob("lyrics-*.zip"))
+    zips = list(out.glob("lyrics-*.zip"))
+    assert zips
+    with zipfile.ZipFile(zips[0]) as archive:
+        assert "Aline Barros - Consagração.txt" in archive.namelist()
     assert (out / "RELEASE_NOTES.md").exists()

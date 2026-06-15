@@ -5,6 +5,7 @@ from pathlib import Path
 
 import typer
 
+from letras.domain.policy import load_policy
 from letras.pipeline import run as scrape
 from letras.release.exporter import export_release
 from letras.source.fetcher import Fetcher
@@ -40,6 +41,6 @@ def export(
     store = CorpusStore(corpus)
     try:
         date = datetime.now(UTC).strftime("%Y%m%d")
-        export_release(store, corpus, out, date=date)
+        export_release(store, corpus, out, date=date, policy=load_policy())
     finally:
         store.close()

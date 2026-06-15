@@ -4,6 +4,7 @@ Full-vs-incremental selection and language labelling arrive in later slices;
 this skeleton scrapes (optionally a single artist) and stores raw.
 """
 
+from letras.domain.language import detect_language
 from letras.source.fetcher import Fetcher
 from letras.source.parser import parse_artist_index, parse_artist_songs, parse_song
 from letras.store.corpus_store import CorpusStore
@@ -29,5 +30,8 @@ def run(
             song_id = store.upsert_song(song, artist_id)
             content = parse_song(fetcher.song_page(artist.slug, song.slug))
             store.set_lyrics(
-                song_id, content, language=None, char_count=len(content)
+                song_id,
+                content,
+                language=detect_language(content),
+                char_count=len(content),
             )

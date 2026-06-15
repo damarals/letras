@@ -92,5 +92,45 @@ class CorpusStore:
                 str(row[4]),
             )
 
+    def iter_for_admission(self) -> Iterator[tuple[int, str, str, str, str]]:
+        """Yield (song_id, artist_name, song_name, content, language) per lyric."""
+        cur = self._conn.execute(
+            "SELECT l.song_id, a.name, s.name, l.content, l.language "
+            "FROM lyrics l "
+            "JOIN songs s ON s.id = l.song_id "
+            "JOIN artists a ON a.id = s.artist_id"
+        )
+        for row in cur.fetchall():
+            yield (
+                int(row[0]),
+                str(row[1]),
+                str(row[2]),
+                str(row[3]),
+                str(row[4] or ""),
+            )
+
+    def set_admitted(self, song_id: int, admitted: bool) -> None:
+        self._conn.execute(
+            "UPDATE lyrics SET admitted = ? WHERE song_id = ?",
+            (1 if admitted else 0, song_id),
+        )
+        self._conn.commit()
+
+    def iter_admitted(self) -> Iterator[tuple[Artist, Song, str]]:
+        cur = self._conn.execute(
+            "SELECT a.name, a.slug, s.name, s.slug, l.content "
+            "FROM lyrics l "
+            "JOIN songs s ON s.id = l.song_id "
+            "JOIN artists a ON a.id = s.artist_id "
+            "WHERE l.admitted = 1 "
+            "ORDER BY a.name, s.name"
+        )
+        for row in cur.fetchall():
+            yield (
+                Artist(name=str(row[0]), slug=str(row[1])),
+                Song(name=str(row[2]), slug=str(row[3])),
+                str(row[4]),
+            )
+
     def close(self) -> None:
         self._conn.close()
