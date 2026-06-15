@@ -44,6 +44,8 @@ htmlcov/
 # Project
 data/
 !data/.gitkeep
+*.db
+.playwright-mcp/
 
 # Misc
 *repo-to-text*
