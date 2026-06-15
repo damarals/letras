@@ -34,6 +34,11 @@ venv.bak/
 coverage.xml
 htmlcov/
 
+# Caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
 # IDE
 .idea/
 .vscode/
@@ -44,6 +49,12 @@ htmlcov/
 # Project
 data/
 !data/.gitkeep
+*.db
+.playwright-mcp/
+
+# Internal docs (kept local, not tracked)
+CONTEXT.md
+docs/
 
 # Misc
 *repo-to-text*

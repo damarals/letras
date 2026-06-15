@@ -1,162 +1,79 @@
-import asyncio
-import os
+"""Command-line surface. Thin adapter over the pipeline and exporter."""
+
+from datetime import UTC, datetime
 from pathlib import Path
 
-import click
-from rich.console import Console
+import typer
 
-from letras.config.config import Config
-from letras.infrastructure.database.connection import PostgresConnection
-from letras.runners.full import FullRunner
-from letras.runners.incremental import IncrementalRunner
+from letras.config import Settings
+from letras.domain.policy import load_policy
+from letras.pipeline import run as scrape
+from letras.release.exporter import export_release
+from letras.source.fetcher import Fetcher
+from letras.source.rate_limiter import RateLimiter
+from letras.store.corpus_store import CorpusStore
 
-console = Console()
-
-
-def setup_output_dir(output_dir: str) -> Path:
-    """Create and validate output directory"""
-    path = Path(output_dir)
-    path.mkdir(parents=True, exist_ok=True)
-    return path
+app = typer.Typer(help="Letras — gospel lyrics corpus scraper", no_args_is_help=True)
 
 
-def run_async(coro):
-    """Run async function in new event loop"""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+def _build_fetcher(settings: Settings) -> Fetcher:
+    """Construct a Fetcher wired with the shared, adaptive rate limiter."""
+    limiter = RateLimiter(
+        rate=settings.requests_per_second,
+        min_rate=settings.min_requests_per_second,
+        max_rate=settings.max_requests_per_second,
+        increase_step=settings.rate_increase_step,
+        backoff_factor=settings.backoff_factor,
+        jitter=settings.jitter,
+    )
+    return Fetcher(
+        settings.base_url,
+        delay=settings.delay,
+        max_attempts=settings.max_attempts,
+        http2=settings.http2,
+        max_connections=settings.max_connections,
+        max_keepalive_connections=settings.max_keepalive_connections,
+        keepalive_expiry=settings.keepalive_expiry,
+        rate_limiter=limiter,
+    )
+
+
+@app.command()
+def run(
+    incremental: bool = typer.Option(
+        False, help="Scrape only songs not already in the corpus"
+    ),
+    artist: str | None = typer.Option(None, help="Scrape only this artist slug"),
+    corpus: Path = typer.Option(Path("corpus.db"), help="Corpus SQLite file"),
+    max_songs: int | None = typer.Option(None, help="Cap songs per artist (debug)"),
+) -> None:
+    """Scrape the source into the corpus store."""
+    settings = Settings()
+    fetcher = _build_fetcher(settings)
+    store = CorpusStore(corpus)
     try:
-        return loop.run_until_complete(coro)
+        scrape(
+            fetcher,
+            store,
+            workers=settings.max_workers,
+            incremental=incremental,
+            only_slug=artist,
+            max_songs=max_songs,
+        )
     finally:
-        loop.close()
+        fetcher.close()
+        store.close()
 
 
-@click.group()
-def cli():
-    """Letras - Gospel lyrics scraper"""
-    pass
-
-
-@cli.command()
-@click.option(
-    "--verbose", "-v", is_flag=True, default=True, help="Show detailed output"
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(),
-    default="data",
-    help="Output directory for files",
-)
-def full(verbose: bool, output: str):
-    """Run full scraping of all artists"""
+@app.command()
+def export(
+    corpus: Path = typer.Option(Path("corpus.db"), help="Corpus SQLite file"),
+    out: Path = typer.Option(Path("dist"), help="Output directory for the Release"),
+) -> None:
+    """Build a Release (corpus.db + .txt ZIP + notes) from the corpus."""
+    store = CorpusStore(corpus)
     try:
-        output_dir = setup_output_dir(output)
-        settings = Config.get_settings()
-
-        runner = FullRunner(
-            db_config={
-                "host": settings.db_host,
-                "port": settings.db_port,
-                "database": settings.db_name,
-                "user": settings.db_user,
-                "password": settings.db_password,
-            },
-            base_url=settings.base_url,
-            verbose=verbose,
-        )
-
-        async def run():
-            try:
-                await runner.initialize()
-                await runner.run(output_dir=str(output_dir))
-            finally:
-                await runner.close()
-
-        run_async(run())
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {str(e)}")
-        raise click.Abort()
-
-
-@cli.command()
-@click.option(
-    "--verbose", "-v", is_flag=True, default=True, help="Show detailed output"
-)
-@click.option(
-    "--output",
-    "-o",
-    type=click.Path(),
-    default="data",
-    help="Output directory for files",
-)
-def incremental(verbose: bool, output: str):
-    """Run incremental update using existing database"""
-    try:
-        output_dir = setup_output_dir(output)
-        settings = Config.get_settings()
-
-        runner = IncrementalRunner(
-            db_config={
-                "host": settings.db_host,
-                "port": settings.db_port,
-                "database": settings.db_name,
-                "user": settings.db_user,
-                "password": settings.db_password,
-            },
-            base_url=settings.base_url,
-            verbose=verbose,
-        )
-
-        async def run():
-            try:
-                await runner.initialize()
-                await runner.run(output_dir=str(output_dir))
-            finally:
-                await runner.close()
-
-        run_async(run())
-
-    except Exception as e:
-        console.print(f"[red]Error:[/red] {str(e)}")
-        raise click.Abort()
-
-
-@cli.command()
-def init():
-    """Initialize database schema"""
-    try:
-        settings = Config.get_settings()
-        db = PostgresConnection(
-            host=settings.db_host,
-            port=settings.db_port,
-            database=settings.db_name,
-            user=settings.db_user,
-            password=settings.db_password,
-        )
-
-        async def run():
-            try:
-                await db.initialize()
-                console.print("[green]Database initialized successfully[/green]")
-            finally:
-                await db.close()
-
-        run_async(run())
-
-    except Exception as e:
-        console.print(f"[red]Error initializing database:[/red] {str(e)}")
-        raise click.Abort()
-
-
-def main():
-    """CLI entry point"""
-    try:
-        cli()
-    except Exception as e:
-        console.print(f"[red]Fatal error:[/red] {str(e)}")
-        raise SystemExit(1)
-
-
-if __name__ == "__main__":
-    main()
+        date = datetime.now(UTC).strftime("%Y%m%d")
+        export_release(store, corpus, out, date=date, policy=load_policy())
+    finally:
+        store.close()

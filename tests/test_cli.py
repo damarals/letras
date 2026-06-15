@@ -1,145 +1,80 @@
+import zipfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
-from letras.cli import cli
+from letras.cli import app
+from letras.domain.entities import Artist, Song
+from letras.source.fetcher import Fetcher
+from letras.store.corpus_store import CorpusStore
 
-
-@pytest.fixture
-def runner():
-    return CliRunner()
-
-
-@pytest.fixture
-def mock_settings():
-    with patch("letras.cli.Config.get_settings") as mock:
-        settings = MagicMock()
-        settings.db_host = "test-db"
-        settings.db_port = 5432
-        settings.db_name = "test"
-        settings.db_user = "test"
-        settings.db_password = "test"
-        settings.base_url = "http://test.com"
-        mock.return_value = settings
-        yield settings
+FIXTURES = Path(__file__).parent / "fixtures"
+runner = CliRunner()
 
 
-def test_full_command(runner, mock_settings, tmp_path):
-    """Test full command execution"""
-    with patch("letras.cli.FullRunner") as mock_runner_cls:
-        # Setup mock runner
-        mock_runner = MagicMock()
-        mock_runner.initialize = AsyncMock()
-        mock_runner.run = AsyncMock()
-        mock_runner.close = AsyncMock()
-        mock_runner_cls.return_value = mock_runner
+def _fixture_fetcher() -> Fetcher:
+    index = (FIXTURES / "artist_index.html").read_text(encoding="utf-8")
+    artist = (FIXTURES / "artist_page.html").read_text(encoding="utf-8")
+    song = (FIXTURES / "song_page.html").read_text(encoding="utf-8")
 
-        # Execute command
-        result = runner.invoke(cli, ["full", "--output", str(tmp_path)])
+    def handler(request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        if "todosartistas" in path:
+            return httpx.Response(200, text=index)
+        if path.strip("/").count("/") == 0:
+            return httpx.Response(200, text=artist)
+        return httpx.Response(200, text=song)
 
-        # Verify
-        assert result.exit_code == 0
-        mock_runner_cls.assert_called_once()
-        assert mock_runner.initialize.await_count == 1
-        assert mock_runner.run.await_count == 1
-        assert mock_runner.close.await_count == 1
-        mock_runner.run.assert_awaited_with(output_dir=str(tmp_path))
+    client = httpx.Client(
+        base_url="https://letras.test", transport=httpx.MockTransport(handler)
+    )
+    return Fetcher(client=client)
 
 
-def test_incremental_command(runner, mock_settings, tmp_path):
-    """Test incremental command execution"""
-    with patch("letras.cli.IncrementalRunner") as mock_runner_cls:
-        # Setup mock runner
-        mock_runner = MagicMock()
-        mock_runner.initialize = AsyncMock()
-        mock_runner.run = AsyncMock()
-        mock_runner.close = AsyncMock()
-        mock_runner_cls.return_value = mock_runner
+def test_run_command_populates_corpus(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("letras.cli.Fetcher", lambda *a, **k: _fixture_fetcher())
+    db = tmp_path / "corpus.db"
 
-        # Execute command
-        result = runner.invoke(cli, ["incremental", "--output", str(tmp_path)])
+    result = runner.invoke(
+        app,
+        [
+            "run",
+            "--artist",
+            "1-igreja-batista-em-trindade",
+            "--corpus",
+            str(db),
+            "--max-songs",
+            "3",
+        ],
+    )
 
-        # Verify
-        assert result.exit_code == 0
-        mock_runner_cls.assert_called_once()
-        assert mock_runner.initialize.await_count == 1
-        assert mock_runner.run.await_count == 1
-        assert mock_runner.close.await_count == 1
-        mock_runner.run.assert_awaited_with(output_dir=str(tmp_path))
-
-
-def test_init_command(runner, mock_settings):
-    """Test init command execution"""
-    with patch("letras.cli.PostgresConnection") as mock_db_cls:
-        # Setup mock database
-        mock_db = MagicMock()
-        mock_db.initialize = AsyncMock()
-        mock_db.close = AsyncMock()
-        mock_db_cls.return_value = mock_db
-
-        # Execute command
-        result = runner.invoke(cli, ["init"])
-
-        # Verify
-        assert result.exit_code == 0
-        mock_db_cls.assert_called_once()
-        assert mock_db.initialize.await_count == 1
-        assert mock_db.close.await_count == 1
+    assert result.exit_code == 0, result.output
+    store = CorpusStore(db)
+    rows = list(store.iter_export())
+    store.close()
+    assert len(rows) == 3
 
 
-def test_full_command_error(runner, mock_settings):
-    """Test error handling in full command"""
-    with patch("letras.cli.FullRunner") as mock_runner_cls:
-        # Setup mock to raise exception
-        mock_runner = MagicMock()
-        mock_runner.initialize = AsyncMock(side_effect=Exception("Test error"))
-        mock_runner.close = AsyncMock()
-        mock_runner_cls.return_value = mock_runner
+def test_export_command_writes_release(tmp_path: Path) -> None:
+    db = tmp_path / "corpus.db"
+    store = CorpusStore(db)
+    artist_id = store.upsert_artist(Artist(name="Aline Barros", slug="aline-barros"))
+    song_id = store.upsert_song(Song(name="Consagração", slug="44039"), artist_id)
+    content = "Louvarei ao Senhor de todo o meu coração e exaltarei o Teu nome " * 4
+    store.set_lyrics(song_id, content, "pt", len(content))
+    store.close()
+    out = tmp_path / "dist"
 
-        # Execute command
-        result = runner.invoke(cli, ["full"])
+    result = runner.invoke(app, ["export", "--corpus", str(db), "--out", str(out)])
 
-        # Verify
-        assert result.exit_code != 0
-        assert "Test error" in result.output
-        assert mock_runner.close.await_count == 1
-
-
-def test_init_command_error(runner, mock_settings):
-    """Test error handling in init command"""
-    with patch("letras.cli.PostgresConnection") as mock_db_cls:
-        # Setup mock to raise exception
-        mock_db = MagicMock()
-        mock_db.initialize = AsyncMock(side_effect=Exception("DB Error"))
-        mock_db.close = AsyncMock()
-        mock_db_cls.return_value = mock_db
-
-        # Execute command
-        result = runner.invoke(cli, ["init"])
-
-        # Verify
-        assert result.exit_code != 0
-        assert "DB Error" in result.output
-        assert mock_db.close.await_count == 1
-
-
-def test_output_dir_creation(runner, mock_settings, tmp_path):
-    """Test output directory creation"""
-    output_dir = tmp_path / "test_output"
-
-    with patch("letras.cli.FullRunner") as mock_runner_cls:
-        # Setup mock runner
-        mock_runner = MagicMock()
-        mock_runner.initialize = AsyncMock()
-        mock_runner.run = AsyncMock()
-        mock_runner.close = AsyncMock()
-        mock_runner_cls.return_value = mock_runner
-
-        # Execute command
-        runner.invoke(cli, ["full", "--output", str(output_dir)])
-
-        # Verify
-        assert output_dir.exists()
-        assert output_dir.is_dir()
+    assert result.exit_code == 0, result.output
+    assert (out / "corpus.db").exists()
+    zip_path = out / "letras.zip"
+    assert zip_path.exists()
+    with zipfile.ZipFile(zip_path) as archive:
+        assert "Aline Barros - Consagração.txt" in archive.namelist()
+    assert (out / "RELEASE_NOTES.md").exists()

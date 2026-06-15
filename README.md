@@ -1,115 +1,63 @@
-<img alt="Letras banner" src=".github/banner.png" style="border-radius: 15px; max-width: 100%; height: auto; display: block; margin: 0 0 16px 0;"/>
+<h1 align="center">Letras</h1>
 <div align="center">
-   <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/test.yaml?label=ci" alt="Status dos CI" />
-   <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/release.yaml?label=cd" alt="Status dos CD" />
-    <a href="https://codecov.io/gh/damarals/letras" >
-      <img src="https://codecov.io/gh/damarals/letras/graph/badge.svg?token=OZX22OK364" alt="Cobertura de Código"/>
-   </a>
+    <img src="https://img.shields.io/github/v/tag/damarals/letras?color=success&label=" alt="Latest Tag" />
+    <img src="https://img.shields.io/github/last-commit/damarals/letras/main?path=README.md&label=%C3%BAltima%20atualiza%C3%A7%C3%A3o&color=blue" alt="Última atualização" />
+    <img src="https://img.shields.io/github/actions/workflow/status/damarals/letras/test.yaml?label=testes" alt="Testes" />
 </div>
-
-<div align="center">
-   <strong>Coleta e Organização Automatizada de Letras Gospel</strong>
-</div>
-<div align="center">Uma ferramenta Python para coletar e organizar letras gospel do letras.mus.br</div>
-
+<br />
+<div align="center"><strong>Um corpus de letras gospel em português</strong></div>
+<div align="center">Letras evangélicas curadas, em banco SQLite e arquivos de texto,<br/> atualizadas toda semana.</div>
 <br />
 <div align="center">
   <sub>Desenvolvido por <a href="https://github.com/damarals">Daniel Amaral</a> 👨‍💻</sub>
 </div>
 <br />
 
-## Introdução
+## Download
 
-Letras é uma aplicação Python desenvolvida para automatizar a coleta e organização de letras de músicas gospel. O projeto faz a raspagem de dados do letras.mus.br, processa as informações e disponibiliza acesso organizado às letras através de um banco de dados DuckDB e arquivos de texto individuais.
+Baixe na última [release](https://github.com/damarals/letras/releases/latest):
 
-## Funcionalidades
+<div align="center">
+  <a href="https://github.com/damarals/letras/releases/latest/download/letras.zip"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-Letras%20(.zip)-F25278?style=for-the-badge&logo=download&logoColor=white" alt="Letras (.zip)" /></a>
+  <a href="https://github.com/damarals/letras/releases/latest/download/corpus.db"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-SQLite-F25278?style=for-the-badge&logo=download&logoColor=white" alt="SQLite" /></a>
+</div>
 
-- Coleta automatizada de letras gospel do letras.mus.br
-- Processamento multithread para coleta eficiente de dados
-- Banco de dados DuckDB para armazenamento estruturado
-- Arquivos de texto individuais para cada música
-- Detecção inteligente de novas músicas
-- Geração automática de relatórios de release
-- Atualizações automáticas semanais via GitHub Actions
+## Conteúdo
 
-## Releases
+- **SQLite** (`corpus.db`) — tabelas `artists`, `songs` e `lyrics`. O banco guarda **tudo o que foi coletado**; o corpus curado é uma consulta:
 
-O projeto é atualizado automaticamente todas as semanas através do GitHub Actions. Cada release inclui:
+  ```sql
+  SELECT * FROM lyrics WHERE admitted = 1;
+  ```
 
-- 📝 **Arquivo ZIP** com todas as letras em formato de texto (.txt)
-- 📊 **Banco de Dados** DuckDB com dados estruturados
-- 📋 **Notas de Release** detalhando:
-  - Total de músicas e artistas adicionados
-  - Top 5 artistas por visualizações
+- **Textos** (`letras.zip`) — um arquivo `<Artista> - <Música>.txt` por música admitida.
+- **RELEASE_NOTES.md** — resumo da release (quantas músicas, de quantos artistas).
 
-Você pode acessar todas as releases através da [página de releases](https://github.com/damarals/letras/releases) do projeto.
+## Curadoria
 
-## Instalação usando Docker (Recomendado)
+Uma letra entra no corpus (`admitted = 1`) quando é gospel evangélica em português: idioma português, entre 100 e 4000 caracteres, e fora das listas de palavras-chave em [`src/letras/filters.yaml`](src/letras/filters.yaml). A coleta guarda tudo; a curadoria roda na hora da release, então você ajusta as regras sem recoletar.
 
-```bash
-# Clone o repositório
-git clone https://github.com/damarals/letras
-cd letras
+## Para mantenedores
 
-# Inicie os containers
-docker-compose up -d
-
-# Inicialize o banco de dados
-docker-compose exec app poetry run python -m letras init
-```
-
-## Instalação usando Poetry
+Toolkit em Python (com [uv](https://docs.astral.sh/uv/)). Sem banco de dados, sem Docker: o estado é o `corpus.db` da última release.
 
 ```bash
-# Clone o repositório
-git clone https://github.com/damarals/letras
-cd letras
-
-# Instale as dependências com poetry
-poetry install
-
-# Execute o coletor
-poetry run python -m letras init
+uv sync
+uv run letras run --incremental   # semanal: coleta só músicas novas
+uv run letras run                 # reconciliação completa (recoleta tudo)
+uv run letras export --out dist   # gera corpus.db + letras.zip + notas
 ```
 
-## Estrutura dos Dados
+Configurável por variáveis `LETRAS_` (ex.: `LETRAS_DELAY`, `LETRAS_MAX_WORKERS`).
 
-O projeto organiza os dados em três tabelas principais:
+## Atualizações
 
-![Diagrama ERD](.github/erd.png)
-
-## Formato dos Arquivos de Texto
-
-Cada arquivo de letra segue este formato:
-```
-<Título>
-<Artista>
-
-<Conteúdo da Letra>
-```
-
-Os arquivos são salvos como `<Artista> - <Título>.txt` no arquivo ZIP da release.
-
-## Atualizações Automáticas
-
-O repositório é atualizado automaticamente toda semana através do GitHub Actions. O workflow:
-
-1. Executa testes e atualiza estatísticas de cobertura
-2. Coleta e identifica novas músicas
-3. Atualiza contagem de visualizações dos artistas
-4. Gera relatório detalhado das mudanças
-5. Cria uma nova release com:
-   - Arquivo ZIP atualizado com todas as letras
-   - Relatório de mudanças em markdown
-
-## Contribuindo
-
-Contribuições são sempre bem-vindas! Sinta-se à vontade para abrir issues ou enviar pull requests. Se encontrar algum problema ou quiser sugerir uma melhoria, não hesite em contribuir.
+Toda semana o GitHub Actions coleta as músicas novas, aplica a curadoria e publica uma release com o banco, os textos e as notas.
 
 ## Licença
 
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+MIT. Veja [LICENSE](LICENSE).
 
 ## Aviso Legal
 
-Esta ferramenta é apenas para fins educacionais. Todas as letras são propriedade de seus respectivos donos e são coletadas de fontes publicamente disponíveis.
+Ferramenta para fins educacionais. As letras são propriedade de seus respectivos donos e foram coletadas de fontes publicamente disponíveis.

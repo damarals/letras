@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       reason:
-        description: 'Reason for running full scraping'
+        description: "Reason for the full reconcile"
         required: true
-        default: 'Manual full scraping run'
+        default: "Manual full reconcile"
+
+permissions:
+  contents: write # create releases
 
 jobs:
   scrape:
@@ -14,49 +17,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Prepare environment and set permissions
-        run: |
-          mkdir -p data
-          sudo chown -R 1000:1000 .
-
-      - name: Build and start services
-        run: |
-          docker compose build
-          docker compose up -d
-          sleep 10 # Aguarda containers iniciarem
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          docker compose exec -T app poetry install
+        run: uv sync
 
-      - name: Initialize database
-        run: |
-          docker compose exec -T app poetry run python -m letras init
-          
-      - name: Run full scraping
-        run: |
-          docker compose exec -T app poetry run python -m letras full
-
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%d%m%Y')" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            data/*.zip
-            data/*.sql
-          body_path: data/RELEASE_NOTES.md
-          name: Letras ${{ steps.date.outputs.date }}
-          tag_name: v${{ steps.date.outputs.date }}
+      - name: Download latest corpus (preserves first_seen; fresh if none)
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download --pattern corpus.db --dir . || echo "No prior corpus; starting fresh"
 
-      - name: Cleanup
-        if: always()
-        run: docker compose down --volumes
+      - name: Full scrape
+        run: uv run letras run --corpus corpus.db
+
+      - name: Export release
+        run: uv run letras export --corpus corpus.db --out dist
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          date=$(date +'%Y%m%d')
+          gh release create "v${date}.${{ github.run_number }}" \
+            dist/corpus.db dist/letras.zip dist/RELEASE_NOTES.md \
+            --title "Letras ${date} (full)" \
+            --notes-file dist/RELEASE_NOTES.md

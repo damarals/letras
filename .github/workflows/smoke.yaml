@@ -1,0 +1,30 @@
+name: Source Smoke Test
+
+# Non-gating: a daily check that the live site still parses. Fails loudly
+# (via the parser's drift guards) if letras.mus.br changed its markup.
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # daily 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Scrape one known song
+        run: uv run letras run --artist aline-barros --max-songs 1 --corpus /tmp/smoke.db
+
+      - name: Assert a lyric was collected
+        run: |
+          uv run python -c "import sqlite3; n = sqlite3.connect('/tmp/smoke.db').execute('SELECT count(*) FROM lyrics').fetchone()[0]; assert n >= 1, 'no lyrics scraped — the source may have drifted'; print('smoke OK:', n)"
