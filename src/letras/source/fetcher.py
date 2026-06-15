@@ -6,8 +6,9 @@ source site:
 
 - **HTTP/2 + a warm keepalive pool.** Hundreds of thousands of requests ride a
   handful of long-lived, multiplexed connections instead of one socket per
-  request. Faster for us, and far gentler on the server (fewer connections,
-  fewer TLS handshakes).
+  request. The pipeline drives one ``asyncio`` event loop, so many in-flight
+  requests share those few connections safely (no thread races over the HTTP/2
+  connection state). Faster for us, and far gentler on the server.
 - **Compression** (gzip/brotli) negotiated via ``Accept-Encoding`` — the
   source serves brotli, roughly a 5-10x byte reduction on these pages.
 - **A shared token-bucket rate limiter with AIMD backoff** instead of a crude
@@ -19,11 +20,11 @@ The legacy fixed ``delay`` is kept as an optional extra pause; pacing is
 otherwise governed by the limiter.
 """
 
-import time
+import asyncio
 
 import httpx
 from tenacity import (
-    Retrying,
+    AsyncRetrying,
     retry_if_exception,
     stop_after_attempt,
     wait_exponential,
@@ -72,7 +73,7 @@ class Fetcher:
         self,
         base_url: str = _BASE_URL,
         *,
-        client: httpx.Client | None = None,
+        client: httpx.AsyncClient | None = None,
         delay: float = 0.0,
         max_attempts: int = 3,
         http2: bool = True,
@@ -81,7 +82,7 @@ class Fetcher:
         keepalive_expiry: float = 30.0,
         rate_limiter: RateLimiter | None = None,
     ) -> None:
-        self._client = client or httpx.Client(
+        self._client = client or httpx.AsyncClient(
             base_url=base_url,
             headers={
                 "User-Agent": _USER_AGENT,
@@ -98,14 +99,14 @@ class Fetcher:
         )
         self._delay = delay
         self._limiter = rate_limiter
-        self._retrying = Retrying(
+        self._retrying = AsyncRetrying(
             stop=stop_after_attempt(max_attempts),
             wait=wait_exponential(multiplier=0.1, max=2),
             retry=retry_if_exception(_should_retry),
             reraise=True,
         )
 
-    def _fetch(self, path: str) -> str:
+    async def _fetch(self, path: str) -> str:
         """One attempt: acquire a rate token, issue the request, and feed the
         outcome back to the limiter (backoff on throttle, ramp on success).
 
@@ -114,10 +115,10 @@ class Fetcher:
         retries the attempt at the now-reduced rate.
         """
         if self._limiter is not None:
-            self._limiter.acquire()
-        response = self._client.get(path)
+            await self._limiter.acquire()
+        response = await self._client.get(path)
         if response.status_code in _THROTTLE_CODES and self._limiter is not None:
-            self._limiter.on_throttled(
+            await self._limiter.on_throttled(
                 _parse_retry_after(response.headers.get("Retry-After"))
             )
         response.raise_for_status()  # throttle codes are 4xx/5xx -> raises here
@@ -125,20 +126,20 @@ class Fetcher:
             self._limiter.on_success()
         return response.text
 
-    def _get(self, path: str) -> str:
-        body: str = self._retrying(self._fetch, path)
+    async def _get(self, path: str) -> str:
+        body: str = await self._retrying(self._fetch, path)
         if self._delay:
-            time.sleep(self._delay)
+            await asyncio.sleep(self._delay)
         return body
 
-    def artist_index(self) -> str:
-        return self._get(_INDEX_PATH)
+    async def artist_index(self) -> str:
+        return await self._get(_INDEX_PATH)
 
-    def artist_page(self, slug: str) -> str:
-        return self._get(f"/{slug}/")
+    async def artist_page(self, slug: str) -> str:
+        return await self._get(f"/{slug}/")
 
-    def song_page(self, artist_slug: str, song_slug: str) -> str:
-        return self._get(f"/{artist_slug}/{song_slug}/")
+    async def song_page(self, artist_slug: str, song_slug: str) -> str:
+        return await self._get(f"/{artist_slug}/{song_slug}/")
 
-    def close(self) -> None:
-        self._client.close()
+    async def aclose(self) -> None:
+        await self._client.aclose()

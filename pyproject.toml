@@ -29,6 +29,7 @@ dev = [
     "mypy>=1.10",
     "lxml-stubs>=0.5",
     "types-pyyaml>=6.0",
+    "pytest-asyncio>=1.4.0",
 ]
 
 [build-system]
@@ -62,3 +63,4 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+asyncio_mode = "auto"

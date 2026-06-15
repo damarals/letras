@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     )
 
     base_url: str = "https://www.letras.mus.br"
-    # Sized so the rate limiter (below), not the worker count, governs throughput.
+    # Max requests in flight at once on the event loop. Sized so the rate
+    # limiter (below), not this cap, governs throughput.
     max_workers: int = 32
     max_attempts: int = 3
 
@@ -24,7 +25,7 @@ class Settings(BaseSettings):
     # Rate governing (token bucket + AIMD). ``requests_per_second`` is the
     # starting ceiling; the limiter backs off on 429/503 and recovers on
     # success, settling at the fastest sustainable rate. ``jitter`` desynchs
-    # bursts of worker threads. The legacy fixed ``delay`` is retained as a
+    # bursts of concurrent requests. The legacy fixed ``delay`` is retained as a
     # fallback only (0 = disabled; the limiter governs pacing instead).
     requests_per_second: float = 12.0
     min_requests_per_second: float = 1.0

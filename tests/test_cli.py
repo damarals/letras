@@ -27,7 +27,7 @@ def _fixture_fetcher() -> Fetcher:
             return httpx.Response(200, text=artist)
         return httpx.Response(200, text=song)
 
-    client = httpx.Client(
+    client = httpx.AsyncClient(
         base_url="https://letras.test", transport=httpx.MockTransport(handler)
     )
     return Fetcher(client=client)
