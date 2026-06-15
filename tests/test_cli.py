@@ -41,8 +41,15 @@ def test_run_command_populates_corpus(
 
     result = runner.invoke(
         app,
-        ["run", "--artist", "1-igreja-batista-em-trindade", "--corpus", str(db),
-         "--max-songs", "3"],
+        [
+            "run",
+            "--artist",
+            "1-igreja-batista-em-trindade",
+            "--corpus",
+            str(db),
+            "--max-songs",
+            "3",
+        ],
     )
 
     assert result.exit_code == 0, result.output

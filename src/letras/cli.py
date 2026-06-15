@@ -11,9 +11,7 @@ from letras.release.exporter import export_release
 from letras.source.fetcher import Fetcher
 from letras.store.corpus_store import CorpusStore
 
-app = typer.Typer(
-    help="Letras — gospel lyrics corpus scraper", no_args_is_help=True
-)
+app = typer.Typer(help="Letras — gospel lyrics corpus scraper", no_args_is_help=True)
 
 
 @app.command()

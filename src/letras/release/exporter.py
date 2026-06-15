@@ -55,5 +55,7 @@ def _render_notes(rows: list[tuple[Artist, Song, str]], date: str) -> str:
         "",
         "## Artists",
     ]
-    lines += [f"- {name} ({count} songs)" for name, count in songs_per_artist.most_common()]
+    lines += [
+        f"- {name} ({count} songs)" for name, count in songs_per_artist.most_common()
+    ]
     return "\n".join(lines) + "\n"

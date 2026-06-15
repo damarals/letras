@@ -43,38 +43,64 @@ def test_admit_rejects_non_portuguese() -> None:
 
 def test_admit_rejects_lyrics_outside_length_bounds() -> None:
     too_short = admit(
-        artist_name="A", song_name="S", content="curta demais",
-        language="pt", policy=POLICY,
+        artist_name="A",
+        song_name="S",
+        content="curta demais",
+        language="pt",
+        policy=POLICY,
     )
     assert (too_short.admitted, too_short.reason) == (False, "length")
 
     too_long = admit(
-        artist_name="A", song_name="S", content="palavra " * 1000,
-        language="pt", policy=POLICY,
+        artist_name="A",
+        song_name="S",
+        content="palavra " * 1000,
+        language="pt",
+        policy=POLICY,
     )
     assert (too_long.admitted, too_long.reason) == (False, "length")
 
 
 def test_admit_rejects_excluded_artist_title_or_content() -> None:
-    assert admit(
-        artist_name="Padre Marcelo Rossi", song_name="S",
-        content=GOOD_LYRIC, language="pt", policy=POLICY,
-    ).reason == "artist"
-    assert admit(
-        artist_name="Coral X", song_name="Ave Maria",
-        content=GOOD_LYRIC, language="pt", policy=POLICY,
-    ).reason == "title"
-    assert admit(
-        artist_name="A", song_name="S",
-        content=GOOD_LYRIC + " fui ao terreiro fazer macumba",
-        language="pt", policy=POLICY,
-    ).reason == "content"
+    assert (
+        admit(
+            artist_name="Padre Marcelo Rossi",
+            song_name="S",
+            content=GOOD_LYRIC,
+            language="pt",
+            policy=POLICY,
+        ).reason
+        == "artist"
+    )
+    assert (
+        admit(
+            artist_name="Coral X",
+            song_name="Ave Maria",
+            content=GOOD_LYRIC,
+            language="pt",
+            policy=POLICY,
+        ).reason
+        == "title"
+    )
+    assert (
+        admit(
+            artist_name="A",
+            song_name="S",
+            content=GOOD_LYRIC + " fui ao terreiro fazer macumba",
+            language="pt",
+            policy=POLICY,
+        ).reason
+        == "content"
+    )
 
 
 def test_admit_does_not_overmatch_substrings() -> None:
     # "Padreira" is a surname; the whole-word rule must not treat it as "Padre".
     verdict = admit(
-        artist_name="Ana Padreira", song_name="S",
-        content=GOOD_LYRIC, language="pt", policy=POLICY,
+        artist_name="Ana Padreira",
+        song_name="S",
+        content=GOOD_LYRIC,
+        language="pt",
+        policy=POLICY,
     )
     assert verdict.admitted is True

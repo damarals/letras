@@ -47,4 +47,7 @@ def test_parse_artist_index_extracts_name_and_slug() -> None:
         name="1° Igreja Batista Em Trindade", slug="1-igreja-batista-em-trindade"
     )
     # HTML entities are decoded
-    assert Artist(name="10,000 Fathers & Mothers", slug="10-000-fathers-e-mothers") in artists
+    assert (
+        Artist(name="10,000 Fathers & Mothers", slug="10-000-fathers-e-mothers")
+        in artists
+    )
