@@ -40,8 +40,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          date=$(date +'%Y%m%d')
-          gh release create "v${date}.${{ github.run_number }}" \
-            dist/corpus.db dist/letras.zip dist/RELEASE_NOTES.md \
-            --title "Letras ${date} (full)" \
+          stamp=$(date -u +'%Y%m%d')                          # sortable tag
+          title_date="${stamp:6:2}${stamp:4:2}${stamp:0:4}"   # DDMMYYYY (BR)
+          gh release create "v${stamp}.${{ github.run_number }}" \
+            dist/corpus.db dist/letras-txt.zip dist/letras-openlyrics.zip \
+            --title "Letras ${title_date}" \
             --notes-file dist/RELEASE_NOTES.md
