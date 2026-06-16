@@ -5,7 +5,7 @@
 </div>
 <br />
 <div align="center"><strong>Uma coletânea de milhares de letras gospel em português</strong></div>
-<div align="center">Em formatos abertos (.txt e .xml), pronta para uso no OpenLP, Quelea ou em qualquer outra aplicação.</div>
+<div align="center">Em formatos abertos (.txt e .xml), pronta para uso no OpenLP, Quelea ou em qualquer outra aplicação. Atualizada toda semana.</div>
 <br />
 <div align="center">
   <a href="https://github.com/damarals/letras/releases/latest/download/letras-txt.zip"><img src="https://custom-icon-badges.demolab.com/badge/Baixar-Letras%20(.txt)-F25278?style=for-the-badge&logo=download&logoColor=white" alt="Letras (.txt)" /></a>
