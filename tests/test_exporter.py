@@ -94,10 +94,10 @@ def test_render_openlyrics_structure() -> None:
     root = ET.fromstring(xml)
     assert root.tag == f"{OL_NS}song"
     assert root.get("version") == "0.9"
-    title = root.find(f"{OL_NS}properties/{OL_NS}titles/{OL_NS}title")
-    author = root.find(f"{OL_NS}properties/{OL_NS}authors/{OL_NS}author")
-    assert title.text == "Consagração"
-    assert author.text == "Aline Barros"
+    title = root.findtext(f"{OL_NS}properties/{OL_NS}titles/{OL_NS}title")
+    author = root.findtext(f"{OL_NS}properties/{OL_NS}authors/{OL_NS}author")
+    assert title == "Consagração"
+    assert author == "Aline Barros"
     verses = root.findall(f"{OL_NS}lyrics/{OL_NS}verse")
     assert [v.get("name") for v in verses] == ["v1", "v2"]
     # two lines in a stanza -> one <br/> joining them
@@ -112,10 +112,10 @@ def test_render_openlyrics_escapes_special_characters() -> None:
     xml = _render_openlyrics(artist, song, "Glória & paz\n<aleluia>")
     root = ET.fromstring(xml)  # parses only if every value is escaped
 
-    title = root.find(f"{OL_NS}properties/{OL_NS}titles/{OL_NS}title")
-    author = root.find(f"{OL_NS}properties/{OL_NS}authors/{OL_NS}author")
-    assert title.text == "Fé <viva>"
-    assert author.text == "A & B"
+    title = root.findtext(f"{OL_NS}properties/{OL_NS}titles/{OL_NS}title")
+    author = root.findtext(f"{OL_NS}properties/{OL_NS}authors/{OL_NS}author")
+    assert title == "Fé <viva>"
+    assert author == "A & B"
 
 
 def test_export_release_writes_openlyrics_zip(tmp_path: Path) -> None:

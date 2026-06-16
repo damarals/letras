@@ -140,8 +140,7 @@ def _render_notes(rows: list[tuple[Artist, Song, str]], date: str, scraped: int)
             [
                 "# Letras gospel em português",
                 "",
-                "Milhares de letras de músicas evangélicas coletadas de "
-                "letras.mus.br.",
+                "Milhares de letras de músicas evangélicas coletadas de letras.mus.br.",
                 "",
                 "| Métrica | Total |",
                 "|---|---|",
